@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<head>
+<title>Price book app</title>
+<script
+  src="https://code.jquery.com/jquery-3.1.1.min.js"
+    integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous"></script>
+<script src="semantic.min.js"></script>
+<link href="semantic.min.css" rel="stylesheet"/>
+<style>
+.priceHeader {
+  width: 20em;
+}
+.dateHeader {
+  width: 12em;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+input[type=number] {
+  -moz-appearance:textfield;
+}
+
+/* Limits the entry up to 99.99. */
+.price {
+  width: 3em;
+}
+
+.size {
+  width: 2em;
+}
+
+.forSeparator {
+  margin-right: .5em;
+  margin-right: .5em;
+}
+</style>
+<!-- TODO: Provide my own theme (use lato: http://www.latofonts.com/) -->
+<!-- TODO: The header should be sticky to follow the viewport. -->
+<!-- TODO: Provide an add button -->
+<!-- TODO: Provide a remove button -->
+<div class="ui segment">
+
+<div class="ui icon input">
+  <i class="search icon"></i>
+  <input type="text" placeholder="Search item">
+</div>
+<table class="ui selectable fixed table">
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>Brand</th>
+      <th class="priceHeader">Price</th>
+      <th>Price per unit</th>
+      <th>Place</th>
+      <th class="dateHeader">Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div class="ui transparent input">
+          <input type="text" value="Pear"></input>
+        </div>
+      </td>
+      <td>
+        <div class="ui transparent input">
+          <input type="text" value="Barlett"></input>
+        </div>
+      </td>
+      <td>
+        <div class="ui transparent input">
+          <span>$</span><input type="number" class="price" value="6.99" pattern="/^\d+\.?\d*$/" onKeyPress="if(this.value.length==5) return false;"/></input>
+          <span class="forSeparator">for</span>
+          <input type="number" value="1" class="size" pattern="\d" onKeyPress="if(this.value.length==3) return false;"></input>
+          <input type="text" value="pound"></input>
+        </div>
+      </td>
+      <td>$1.89/pound</td>
+      <td>
+        <div class="ui transparent input">
+          <input type="text" value="Safeway"></input>
+        </div>
+      </td>
+      <td>2/1/2019</td>
+    </tr>
+    <tr>
+      <td>
+        <div class="ui transparent input">
+          <input type="text" value="Hummus"></input>
+        </div>
+      </td>
+      <td>
+        <div class="ui transparent input">
+          <input type="text" value="Sabra"></input>
+        </div>
+      </td>
+      <td>
+        <div class="ui transparent input">
+          <span>$</span><input type="number" class="price" value="6.99" pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==5) return false;" /></input>
+          <span class="forSeparator">for</span>
+          <input type="number" value="17" class="size" pattern="\d" onKeyPress="if(this.value.length==3) return false;"></input>
+          <input type="text" value="oz"></input>
+        </div>
+      </td>
+      <td>$0.41/oz</td>
+      <td>
+        <div class="ui transparent input">
+          <input type="text" value="Lucky's"></input>
+        </div>
+      </td>
+      <td>12/1/2018</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+
