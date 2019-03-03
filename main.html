@@ -236,30 +236,39 @@ function formatToday() {
   return new Date().toISOString().split("T")[0];
 }
 
+function createTableRow(product) {
+  var row = document.createElement("tr");
+  var nameCell = generateSingleTextInputCell(product.name);
+  // Save the old name on focus to be able to update the map.
+  nameCell.getElementsByTagName("input")[0].oldName = product.name;
+  row.appendChild(nameCell);
+  row.appendChild(generateSingleTextInputCell(product.brand));
+  row.appendChild(generatePriceAndQuantityCell(product.price));
+  row.appendChild(generatePricePerQuantityCell(product.price));
+  row.appendChild(generateSingleTextInputCell(product.place));
+  row.appendChild(generateDateInputCell(product.date));
+  return row;
+}
+
 function populateTable() {
-  var tbody = document.getElementsByTagName("tbody")[0];
+  const tbody = document.getElementsByTagName("tbody")[0];
   var new_tbody = document.createElement("tbody");
-  for (var [key, product] of productMap) {
-    var row = document.createElement("tr");
-    var nameCell = generateSingleTextInputCell(product.name);
-    // Save the old name on focus to be able to update the map.
-    nameCell.getElementsByTagName("input")[0].oldName = key;
-    row.appendChild(nameCell);
-    row.appendChild(generateSingleTextInputCell(product.brand));
-    row.appendChild(generatePriceAndQuantityCell(product.price));
-    row.appendChild(generatePricePerQuantityCell(product.price));
-    row.appendChild(generateSingleTextInputCell(product.place));
-    row.appendChild(generateDateInputCell(product.date));
-    new_tbody.appendChild(row);
+  const keys = Array.from(productMap.keys()).sort();
+  for (var key of keys) {
+    const product = productMap.get(key);
+    new_tbody.appendChild(createTableRow(product));
   }
   tbody.parentNode.replaceChild(new_tbody, tbody);
 }
 
 function addNewProduct() {
-  productMap.set("", new Product("", "", new Price(0, 1, "pound"), "", formatToday()));
-  // TODO: This is a lot of extra computation.
-  // TODO: Also where is the new element added?
-  populateTable();
+  const product = new Product("", "", new Price(0, 1, "pound"), "", formatToday());
+  productMap.set("", product);
+  // TODO: We need to migrate the element to a better position.
+  const tbody = document.getElementsByTagName("tbody")[0];
+  const row = createTableRow(product);
+  tbody.insertBefore(row, tbody.firstChild);
+  row.childNodes[0].getElementsByTagName("input")[0].focus();
 }
 
 // Products keyed by the product name for easier lookup.
