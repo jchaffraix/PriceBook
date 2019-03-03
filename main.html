@@ -86,10 +86,11 @@ class Price {
 }
 
 class Product {
-  constructor(name, brand, price, date) {
+  constructor(name, brand, price, place, date) {
     this.name = name;
     this.brand = brand;
     this.price = price;
+    this.place = place;
     this.date = date;
   }
 }
@@ -193,6 +194,7 @@ function populateTable() {
     row.appendChild(generateSingleTextInputCell(product.brand));
     row.appendChild(generatePriceAndQuantityCell(product.price));
     row.appendChild(generatePricePerQuantityCell(product.price));
+    row.appendChild(generateSingleTextInputCell(product.place));
     row.appendChild(generateDateCell(product));
     new_tbody.appendChild(row);
   }
@@ -203,8 +205,8 @@ function populateTable() {
 var productMap = new Map();
 function populateProductMap() {
   var products = [
-    new Product("Pear", "Barlett", new Price(1.89, 1, "pound"), "2/1/2019"),
-    new Product("Hummus", "Sabra", new Price(6.99, 17, "oz"), "12/1/2018"),
+    new Product("Pear", "Barlett", new Price(1.89, 1, "pound"), "Safeway", "2/1/2019"),
+    new Product("Hummus", "Sabra", new Price(6.99, 17, "oz"), "Lucky's", "12/1/2018"),
   ];
   for (var i = 0; i < products.length; ++i) {
     productMap.set(products[i].name, products[i]);
