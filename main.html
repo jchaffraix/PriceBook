@@ -97,6 +97,7 @@ function generatePriceAndQuantityCell(product) {
   price.pattern = "/^\d+\.?\d*$/";
   price.value = product.price;
   price.addEventListener("keypress", function(e) { if(e.target.value.length==5) e.preventDefault(); });
+  price.addEventListener("change", updatePricePerQuantityCell);
   semanticInput.appendChild(price);
 
   var forSeparator = document.createElement("span");
@@ -108,26 +109,40 @@ function generatePriceAndQuantityCell(product) {
   quantity.type="number";
   quantity.value=product.quantity;
   quantity.classList.add("quantity");
-  quantity.pattern="\d";
+  quantity.pattern="\d+";
   quantity.addEventListener("keypress", function(e) { if(e.target.value.length==3) e.preventDefault(); });
+  quantity.addEventListener("change", updatePricePerQuantityCell);
   semanticInput.appendChild(quantity);
 
   var unit = document.createElement("input");
   unit.type = "text";
   unit.value = product.unit;
+  unit.addEventListener("change", updatePricePerQuantityCell);
   semanticInput.appendChild(unit);
   td.appendChild(semanticInput);
   return td;
 }
 
-function generatePricePerQuantityCell(product) {
+function updatePricePerQuantityCell(e) {
+  var row = e.target.parentNode.parentNode.parentNode;
+  var changedCell = row.childNodes[2];
+  var price = changedCell.getElementsByTagName("input")[0].value;
+  var quantity = changedCell.getElementsByTagName("input")[1].value;
+  var unit = changedCell.getElementsByTagName("input")[2].value;
+
+  var pricePerQuantityCell = row.childNodes[3];
+  var newPricePerQuantityCell = generatePricePerQuantityCell(price, quantity, unit);
+  row.replaceChild(newPricePerQuantityCell, pricePerQuantityCell);
+}
+
+function generatePricePerQuantityCell(price, quantity, unit) {
   var td = document.createElement("td");
-  var price = Math.round(100 * product.price / product.quantity) / 100;
+  var priceTxt = Math.round(100 * price / quantity) / 100;
   // TODO: Remove this hard-coding.
   td.appendChild(document.createTextNode("$"));
-  td.appendChild(document.createTextNode(price));
+  td.appendChild(document.createTextNode(priceTxt));
   td.appendChild(document.createTextNode("/"));
-  td.appendChild(document.createTextNode(product.unit));
+  td.appendChild(document.createTextNode(unit));
   return td;
 }
 
@@ -152,7 +167,7 @@ function populateTable(products) {
     row.appendChild(generateSingleTextInputCell(product.name));
     row.appendChild(generateSingleTextInputCell(product.brand));
     row.appendChild(generatePriceAndQuantityCell(product));
-    row.appendChild(generatePricePerQuantityCell(product));
+    row.appendChild(generatePricePerQuantityCell(product.price, product.quantity, product.unit));
     row.appendChild(generateDateCell(product));
     new_tbody.appendChild(row);
   }
