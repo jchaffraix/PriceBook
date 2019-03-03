@@ -66,6 +66,34 @@ input[type=number] {
 
 </div>
 <script>
+'use strict';
+
+class Price {
+  constructor(price, quantity, unit) {
+    this.price = price;
+    this.quantity = quantity;
+    this.unit = unit;
+  }
+
+  get pricePerQuantity() {
+    return Math.round(100 * this.price / this.quantity) / 100;
+  }
+
+  get pricePerQuantityText() {
+    // TODO: Stop hardcoding '$'.
+    return "$" + this.pricePerQuantity + "/" + this.unit;
+  }
+}
+
+class Product {
+  constructor(name, brand, price, date) {
+    this.name = name;
+    this.brand = brand;
+    this.price = price;
+    this.date = date;
+  }
+}
+
 function generateSingleTextInputCell(name) {
   var td = document.createElement("td");
   var semanticInput = document.createElement("div");
@@ -80,7 +108,7 @@ function generateSingleTextInputCell(name) {
   return td;
 }
 
-function generatePriceAndQuantityCell(product) {
+function generatePriceAndQuantityCell(price) {
   var td = document.createElement("td");
   var semanticInput = document.createElement("div");
   semanticInput.classList.add("ui");
@@ -91,14 +119,14 @@ function generatePriceAndQuantityCell(product) {
   currency.appendChild(document.createTextNode("$"));
   semanticInput.appendChild(currency);
 
-  var price = document.createElement("input");
-  price.type = "number";
-  price.classList.add("price");
-  price.pattern = "/^\d+\.?\d*$/";
-  price.value = product.price;
-  price.addEventListener("keypress", function(e) { if(e.target.value.length==5) e.preventDefault(); });
-  price.addEventListener("change", updatePricePerQuantityCell);
-  semanticInput.appendChild(price);
+  var priceNode = document.createElement("input");
+  priceNode.type = "number";
+  priceNode.classList.add("price");
+  priceNode.pattern = "/^\d+\.?\d*$/";
+  priceNode.value = price.price;
+  priceNode.addEventListener("keypress", function(e) { if(e.target.value.length==5) e.preventDefault(); });
+  priceNode.addEventListener("change", updatePricePerQuantityCell);
+  semanticInput.appendChild(priceNode);
 
   var forSeparator = document.createElement("span");
   forSeparator.classList.add("forSeparator");
@@ -106,17 +134,17 @@ function generatePriceAndQuantityCell(product) {
   semanticInput.appendChild(forSeparator);
 
   var quantity = document.createElement("input");
-  quantity.type="number";
-  quantity.value=product.quantity;
+  quantity.type = "number";
+  quantity.value = price.quantity;
   quantity.classList.add("quantity");
-  quantity.pattern="\d+";
+  quantity.pattern = "\d+";
   quantity.addEventListener("keypress", function(e) { if(e.target.value.length==3) e.preventDefault(); });
   quantity.addEventListener("change", updatePricePerQuantityCell);
   semanticInput.appendChild(quantity);
 
   var unit = document.createElement("input");
   unit.type = "text";
-  unit.value = product.unit;
+  unit.value = price.unit;
   unit.addEventListener("change", updatePricePerQuantityCell);
   semanticInput.appendChild(unit);
   td.appendChild(semanticInput);
@@ -125,24 +153,22 @@ function generatePriceAndQuantityCell(product) {
 
 function updatePricePerQuantityCell(e) {
   var row = e.target.parentNode.parentNode.parentNode;
+  var name = row.childNodes[0].getElementsByTagName("input")[0].value;
   var changedCell = row.childNodes[2];
   var price = changedCell.getElementsByTagName("input")[0].value;
   var quantity = changedCell.getElementsByTagName("input")[1].value;
   var unit = changedCell.getElementsByTagName("input")[2].value;
+  var newPrice = new Price(price, quantity, unit);
+  productMap.get(name).price = newPrice;
 
   var pricePerQuantityCell = row.childNodes[3];
-  var newPricePerQuantityCell = generatePricePerQuantityCell(price, quantity, unit);
+  var newPricePerQuantityCell = generatePricePerQuantityCell(newPrice);
   row.replaceChild(newPricePerQuantityCell, pricePerQuantityCell);
 }
 
-function generatePricePerQuantityCell(price, quantity, unit) {
+function generatePricePerQuantityCell(price) {
   var td = document.createElement("td");
-  var priceTxt = Math.round(100 * price / quantity) / 100;
-  // TODO: Remove this hard-coding.
-  td.appendChild(document.createTextNode("$"));
-  td.appendChild(document.createTextNode(priceTxt));
-  td.appendChild(document.createTextNode("/"));
-  td.appendChild(document.createTextNode(unit));
+  td.appendChild(document.createTextNode(price.pricePerQuantityText));
   return td;
 }
 
@@ -158,29 +184,36 @@ function generateDateCell(product) {
   return td;
 }
 
-function populateTable(products) {
+function populateTable() {
   var tbody = document.getElementsByTagName("tbody")[0];
   var new_tbody = document.createElement("tbody");
-  for (var i = 0; i < products.length; ++i) {
-    var product = products[i];
+  for (var [key, product] of productMap) {
     var row = document.createElement("tr");
     row.appendChild(generateSingleTextInputCell(product.name));
     row.appendChild(generateSingleTextInputCell(product.brand));
-    row.appendChild(generatePriceAndQuantityCell(product));
-    row.appendChild(generatePricePerQuantityCell(product.price, product.quantity, product.unit));
+    row.appendChild(generatePriceAndQuantityCell(product.price));
+    row.appendChild(generatePricePerQuantityCell(product.price));
     row.appendChild(generateDateCell(product));
     new_tbody.appendChild(row);
   }
   tbody.parentNode.replaceChild(new_tbody, tbody);
 }
 
-function initializeApp() {
+// Products keyed by the product name for easier lookup.
+var productMap = new Map();
+function populateProductMap() {
   var products = [
-    {"name": "Pear", "brand": "Barlett", "price": 1.89, "quantity": 1, "unit": "pound", "date": "2/1/2019"},
-    {"name": "Hummus", "brand": "Sabra", "price": 6.99, "quantity": 17, "unit": "oz", "date": "12/1/2018"},
+    new Product("Pear", "Barlett", new Price(1.89, 1, "pound"), "2/1/2019"),
+    new Product("Hummus", "Sabra", new Price(6.99, 17, "oz"), "12/1/2018"),
   ];
+  for (var i = 0; i < products.length; ++i) {
+    productMap.set(products[i].name, products[i]);
+  }
+}
 
-  populateTable(products);
+function initializeApp() {
+  populateProductMap();
+  populateTable();
 }
 window.addEventListener("load", initializeApp);
 </script>
