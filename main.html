@@ -129,6 +129,31 @@ function generateSingleInputCell(value, type) {
   return td;
 }
 
+function createUnitSelection(unit) {
+  var unitNode = document.createElement("select");
+  unitNode.classList.add("ui");
+  unitNode.classList.add("dropdown");
+
+  var item = document.createElement("option");
+  item.value = "item";
+  item.appendChild(document.createTextNode("item"));
+  unitNode.appendChild(item);
+
+  var pound = document.createElement("option");
+  pound.value = "pound";
+  pound.appendChild(document.createTextNode("pound"));
+  unitNode.appendChild(pound);
+
+  var oz = document.createElement("option");
+  oz.value = "oz";
+  oz.appendChild(document.createTextNode("oz"));
+  unitNode.appendChild(oz);
+
+  unitNode.value = unit;
+  unitNode.addEventListener("change", updateModel);
+  return unitNode;
+}
+
 function generatePriceAndQuantityCell(price) {
   var td = document.createElement("td");
   var semanticInput = document.createElement("div");
@@ -163,12 +188,8 @@ function generatePriceAndQuantityCell(price) {
   quantity.addEventListener("change", updateModel);
   semanticInput.appendChild(quantity);
 
-  var unit = document.createElement("input");
-  unit.type = "text";
-  unit.value = price.unit;
-  unit.addEventListener("change", updateModel);
-  semanticInput.appendChild(unit);
   td.appendChild(semanticInput);
+  td.appendChild(createUnitSelection(price.unit));
   return td;
 }
 
@@ -201,7 +222,7 @@ function updateModel(e) {
   const priceCell = row.childNodes[2];
   const price = priceCell.getElementsByTagName("input")[0].value;
   const quantity = priceCell.getElementsByTagName("input")[1].value;
-  const unit = priceCell.getElementsByTagName("input")[2].value;
+  const unit = priceCell.getElementsByTagName("select")[0].value;
   const newPrice = new Price(price, quantity, unit);
   if (!product.price.equals(newPrice)) {
     product.price = newPrice;
@@ -273,7 +294,7 @@ function populateTable() {
 }
 
 function addNewProduct() {
-  const product = new Product("", "", new Price(0, 1, "pound"), "", formatToday());
+  const product = new Product("", "", new Price(0, 1, ""), "", formatToday());
   productMap.set("", product);
   // TODO: We need to migrate the element to a better position once it is populated.
   const tbody = document.getElementsByTagName("tbody")[0];
