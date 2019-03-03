@@ -104,15 +104,23 @@ class Product {
   }
 }
 
+function generateDateInputCell(date) {
+  return generateSingleInputCell(date, "date");
+}
+
 function generateSingleTextInputCell(name) {
+  return generateSingleInputCell(name, "text");
+}
+
+function generateSingleInputCell(value, type) {
   var td = document.createElement("td");
   var semanticInput = document.createElement("div");
   semanticInput.classList.add("ui");
   semanticInput.classList.add("transparent");
   semanticInput.classList.add("input");
   var input = document.createElement("input");
-  input.type = "text";
-  input.value = name;
+  input.type = type;
+  input.value = value;
   input.addEventListener("change", updateModel);
   semanticInput.appendChild(input);
   td.appendChild(semanticInput);
@@ -205,7 +213,7 @@ function updateModel(e) {
   var shouldUpdateDate = product.date === date;
   if (shouldUpdateDate) {
     product.date = formatToday();
-    const newDateCell = generateSingleTextInputCell(product.date);
+    const newDateCell = generateDateInputCell(product.date);
     row.replaceChild(newDateCell, dateCell);
   } else {
     product.date = date;
@@ -219,15 +227,9 @@ function generatePricePerQuantityCell(price) {
 }
 
 function formatToday() {
-  var date = new Date();
-  // TODO: Fix the localization.
-  return date.toLocaleDateString("en-US");
-}
-
-function generateDateCell(product) {
-  var td = document.createElement("td");
-  td.appendChild(document.createTextNode(product.date));
-  return td;
+  // toISOString returns the time, which we won't be accepted
+  // by <input type="date"> so we just isolate the date part.
+  return new Date().toISOString().split("T")[0];
 }
 
 function populateTable() {
@@ -240,7 +242,7 @@ function populateTable() {
     row.appendChild(generatePriceAndQuantityCell(product.price));
     row.appendChild(generatePricePerQuantityCell(product.price));
     row.appendChild(generateSingleTextInputCell(product.place));
-    row.appendChild(generateSingleTextInputCell(product.date));
+    row.appendChild(generateDateInputCell(product.date));
     new_tbody.appendChild(row);
   }
   tbody.parentNode.replaceChild(new_tbody, tbody);
@@ -250,8 +252,8 @@ function populateTable() {
 var productMap = new Map();
 function populateProductMap() {
   var products = [
-    new Product("Pear", "Barlett", new Price(1.89, 1, "pound"), "Safeway", "2/1/2019"),
-    new Product("Hummus", "Sabra", new Price(6.99, 17, "oz"), "Lucky's", "12/1/2018"),
+    new Product("Pear", "Barlett", new Price(1.89, 1, "pound"), "Safeway", "2019-02-01"),
+    new Product("Hummus", "Sabra", new Price(6.99, 17, "oz"), "Lucky's", "2018-12-01"),
   ];
   for (var i = 0; i < products.length; ++i) {
     productMap.set(products[i].name, products[i]);
