@@ -48,8 +48,10 @@ input[type=number] {
 
 <div class="ui icon input">
   <i class="search icon"></i>
-  <input type="text" placeholder="Search item">
+  <input type="text" placeholder="Search products">
 </div>
+<button class="ui right floated primary button" id="add">Add</button>
+
 <table class="ui selectable fixed table">
   <thead>
     <tr>
@@ -193,6 +195,7 @@ function updateModel(e) {
     productMap.delete(oldName);
     product.name = name;
     productMap.set(name, product);
+    this.oldName = name;
   }
 
   const priceCell = row.childNodes[2];
@@ -240,7 +243,7 @@ function populateTable() {
     var row = document.createElement("tr");
     var nameCell = generateSingleTextInputCell(product.name);
     // Save the old name on focus to be able to update the map.
-    nameCell.getElementsByTagName("input")[0].addEventListener("focus", function(e) { e.target.oldName = e.target.value; });
+    nameCell.getElementsByTagName("input")[0].oldName = key;
     row.appendChild(nameCell);
     row.appendChild(generateSingleTextInputCell(product.brand));
     row.appendChild(generatePriceAndQuantityCell(product.price));
@@ -250,6 +253,13 @@ function populateTable() {
     new_tbody.appendChild(row);
   }
   tbody.parentNode.replaceChild(new_tbody, tbody);
+}
+
+function addNewProduct() {
+  productMap.set("", new Product("", "", new Price(0, 1, "pound"), "", formatToday()));
+  // TODO: This is a lot of extra computation.
+  // TODO: Also where is the new element added?
+  populateTable();
 }
 
 // Products keyed by the product name for easier lookup.
@@ -267,6 +277,7 @@ function populateProductMap() {
 function initializeApp() {
   populateProductMap();
   populateTable();
+  $("#add").click(addNewProduct);
 }
 window.addEventListener("load", initializeApp);
 </script>
