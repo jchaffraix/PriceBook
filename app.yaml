@@ -1,0 +1,20 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /semantic
+  static_dir: semantic
+  secure: always
+- url: /resources
+  static_dir: resources
+  secure: always
+- url: /
+  script: broker.app
+  secure: always
+
+libraries:
+- name: webapp2
+  version: latest
+- name: ssl
+  version: latest
