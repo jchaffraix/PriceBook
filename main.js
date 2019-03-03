@@ -168,6 +168,7 @@ function updateModel(e) {
   } else {
     product.date = date;
   }
+  saveProductList();
 }
 
 function generatePricePerQuantityCell(price) {
@@ -245,6 +246,7 @@ function addNewProduct() {
   const row = createTableRow(product);
   tbody.insertBefore(row, tbody.firstChild);
   row.childNodes[1].getElementsByTagName("input")[0].focus();
+  saveProductList();
 }
 
 function removeProduct(e) {
@@ -257,22 +259,34 @@ function removeProduct(e) {
       break;
     }
   }
+  saveProductList();
   populateTable();
 }
 
 var productList = new Array();
-function populateProductMap() {
-  var products = [
-    new Product("Pear", "Barlett", new Price(1.89, 1, "pound"), "Safeway", "2019-02-01"),
-    new Product("Hummus", "Sabra", new Price(6.99, 17, "oz"), "Lucky's", "2018-12-01"),
-  ];
-  for (var i = 0; i < products.length; ++i) {
-    productList.push(products[i]);
+
+function parseProductList(products) {
+  for (const product of products) {
+    const price = product.price;
+    productList.push(new Product(product.name, product.brand, new Price(price.price, price.quantity, price.unit), product.place, product.date));
   }
 }
 
+function populateProductList() {
+  var products = window.localStorage.getItem("products");
+  // For first time users, localStorage will return null.
+  if (products === null)
+    return;
+
+  parseProductList(JSON.parse(products));
+}
+
+function saveProductList() {
+  window.localStorage.setItem("products", JSON.stringify(productList));
+}
+
 function initializeApp() {
-  populateProductMap();
+  populateProductList();
   populateTable();
   $("#add").click(addNewProduct);
   // This listens to input to react while the user is typing.
