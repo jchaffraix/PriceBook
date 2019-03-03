@@ -14,6 +14,9 @@
 .dateHeader {
   width: 12em;
 }
+.removeHeader {
+  width: 4em;
+}
 
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
@@ -52,9 +55,11 @@ input[type=number] {
 </div>
 <button class="ui right floated primary button" id="add">Add</button>
 
+
 <table class="ui selectable fixed table">
   <thead>
     <tr>
+      <th class="removeHeader"></th>
       <th>Product</th>
       <th>Brand</th>
       <th class="priceHeader">Price</th>
@@ -193,24 +198,28 @@ function generatePriceAndQuantityCell(price) {
   return td;
 }
 
-function updateModel(e) {
+function findEnclosingRow(node) {
   // Find the enclosing row
-  var row = e.target.parentNode;
+  var row = node.parentNode;
   while (row.tagName !== "TR") {
     row = row.parentNode;
   }
+  return row;
+}
 
+function updateModel(e) {
+  const row = findEnclosingRow(e.target);
   var product = row.product;
 
   // Always update the name, brand and the place.
-  const name = row.childNodes[0].getElementsByTagName("input")[0].value;
-  const brand = row.childNodes[1].getElementsByTagName("input")[0].value;
-  const place = row.childNodes[4].getElementsByTagName("input")[0].value;
+  const name = row.childNodes[1].getElementsByTagName("input")[0].value;
+  const brand = row.childNodes[2].getElementsByTagName("input")[0].value;
+  const place = row.childNodes[5].getElementsByTagName("input")[0].value;
   product.name = name;
   product.brand = brand;
   product.place = place;
 
-  const priceCell = row.childNodes[2];
+  const priceCell = row.childNodes[3];
   const price = priceCell.getElementsByTagName("input")[0].value;
   const quantity = priceCell.getElementsByTagName("input")[1].value;
   const unit = priceCell.getElementsByTagName("select")[0].value;
@@ -218,13 +227,13 @@ function updateModel(e) {
   if (!product.price.equals(newPrice)) {
     product.price = newPrice;
 
-    var pricePerQuantityCell = row.childNodes[3];
+    var pricePerQuantityCell = row.childNodes[4];
     var newPricePerQuantityCell = generatePricePerQuantityCell(newPrice);
     row.replaceChild(newPricePerQuantityCell, pricePerQuantityCell);
   }
 
   // Update the date unless it was updated by the user.
-  const dateCell = row.childNodes[5];
+  const dateCell = row.childNodes[6];
   const date = dateCell.getElementsByTagName("input")[0].value;
   var shouldUpdateDate = product.date === date;
   if (shouldUpdateDate) {
@@ -248,10 +257,24 @@ function formatToday() {
   return new Date().toISOString().split("T")[0];
 }
 
+function generateRemoveCell() {
+  var cell = document.createElement("td");
+  var removeIcon = document.createElement("i");
+  removeIcon.classList.add("icon");
+  removeIcon.classList.add("trash");
+  removeIcon.classList.add("alternate");
+  removeIcon.classList.add("outline");
+  removeIcon.addEventListener("touch", removeProduct);
+  removeIcon.addEventListener("click", removeProduct);
+  cell.appendChild(removeIcon);
+  return cell;
+}
+
 function createTableRow(product) {
   // Save the model in the row so we can update it.
   var row = document.createElement("tr");
   row.product = product;
+  row.appendChild(generateRemoveCell());
   var nameCell = generateSingleTextInputCell(product.name);
   row.appendChild(nameCell);
   row.appendChild(generateSingleTextInputCell(product.brand));
@@ -296,7 +319,20 @@ function addNewProduct() {
   const tbody = document.getElementsByTagName("tbody")[0];
   const row = createTableRow(product);
   tbody.insertBefore(row, tbody.firstChild);
-  row.childNodes[0].getElementsByTagName("input")[0].focus();
+  row.childNodes[1].getElementsByTagName("input")[0].focus();
+}
+
+function removeProduct(e) {
+  const row = findEnclosingRow(e.target);
+  const productToRemove = row.product;
+  for (var i = 0; i < productList.length; ++i) {
+    const product = productList[i];
+    if (product === productToRemove) {
+      productList.splice(i, 1);
+      break;
+    }
+  }
+  populateTable();
 }
 
 var productList = new Array();
