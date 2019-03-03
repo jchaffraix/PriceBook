@@ -195,7 +195,7 @@ function populateTable() {
     row.appendChild(generatePriceAndQuantityCell(product.price));
     row.appendChild(generatePricePerQuantityCell(product.price));
     row.appendChild(generateSingleTextInputCell(product.place));
-    row.appendChild(generateDateCell(product));
+    row.appendChild(generateSingleTextInputCell(product.date));
     new_tbody.appendChild(row);
   }
   tbody.parentNode.replaceChild(new_tbody, tbody);
