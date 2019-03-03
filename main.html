@@ -200,24 +200,15 @@ function updateModel(e) {
     row = row.parentNode;
   }
 
-  const oldName = row.childNodes[0].getElementsByTagName("input")[0].oldName;
-  const name = row.childNodes[0].getElementsByTagName("input")[0].value;
-  var product = productMap.get(oldName);
+  var product = row.product;
 
-  // Always update the brand and the place.
+  // Always update the name, brand and the place.
+  const name = row.childNodes[0].getElementsByTagName("input")[0].value;
   const brand = row.childNodes[1].getElementsByTagName("input")[0].value;
   const place = row.childNodes[4].getElementsByTagName("input")[0].value;
+  product.name = name;
   product.brand = brand;
   product.place = place;
-
-
-  // TODO: Support multiple products!
-  if (oldName !== name) {
-    productMap.delete(oldName);
-    product.name = name;
-    productMap.set(name, product);
-    this.oldName = name;
-  }
 
   const priceCell = row.childNodes[2];
   const price = priceCell.getElementsByTagName("input")[0].value;
@@ -258,10 +249,10 @@ function formatToday() {
 }
 
 function createTableRow(product) {
+  // Save the model in the row so we can update it.
   var row = document.createElement("tr");
+  row.product = product;
   var nameCell = generateSingleTextInputCell(product.name);
-  // Save the old name on focus to be able to update the map.
-  nameCell.getElementsByTagName("input")[0].oldName = product.name;
   row.appendChild(nameCell);
   row.appendChild(generateSingleTextInputCell(product.brand));
   row.appendChild(generatePriceAndQuantityCell(product.price));
@@ -271,23 +262,28 @@ function createTableRow(product) {
   return row;
 }
 
-// Returns the keys of the product that matches the search
+// Returns the products that match the search
 // query. If it empty, we return everything.
 function productsFilteredBySearch() {
   const filter = document.getElementById("search").value;
-  var keys = Array.from(productMap.keys())
+  var filteredProducts = Array.from(productList);
   if (filter !== "") {
-    keys = keys.filter(key => key.startsWith(filter));
+    filteredProducts = filteredProducts.filter(product => product.name.startsWith(filter));
   }
-  return keys.sort();
+  return filteredProducts.sort(function(productA, productB) {
+    if (productA.name < productB.name)
+      return -1;
+    if (productA.name > productB.name)
+      return 1;
+    return 0;
+  });
 }
 
 function populateTable() {
   const tbody = document.getElementsByTagName("tbody")[0];
   var new_tbody = document.createElement("tbody");
-  const keys = productsFilteredBySearch();
-  for (var key of keys) {
-    const product = productMap.get(key);
+  const products = productsFilteredBySearch();
+  for (var product of products) {
     new_tbody.appendChild(createTableRow(product));
   }
   tbody.parentNode.replaceChild(new_tbody, tbody);
@@ -295,7 +291,7 @@ function populateTable() {
 
 function addNewProduct() {
   const product = new Product("", "", new Price(0, 1, ""), "", formatToday());
-  productMap.set("", product);
+  productList.push(product);
   // TODO: We need to migrate the element to a better position once it is populated.
   const tbody = document.getElementsByTagName("tbody")[0];
   const row = createTableRow(product);
@@ -303,15 +299,14 @@ function addNewProduct() {
   row.childNodes[0].getElementsByTagName("input")[0].focus();
 }
 
-// Products keyed by the product name for easier lookup.
-var productMap = new Map();
+var productList = new Array();
 function populateProductMap() {
   var products = [
     new Product("Pear", "Barlett", new Price(1.89, 1, "pound"), "Safeway", "2019-02-01"),
     new Product("Hummus", "Sabra", new Price(6.99, 17, "oz"), "Lucky's", "2018-12-01"),
   ];
   for (var i = 0; i < products.length; ++i) {
-    productMap.set(products[i].name, products[i]);
+    productList.push(products[i]);
   }
 }
 
