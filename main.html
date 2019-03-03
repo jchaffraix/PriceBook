@@ -100,7 +100,7 @@ function generatePriceAndQuantityCell(product) {
   semanticInput.appendChild(price);
 
   var forSeparator = document.createElement("span");
-  forSeparator.class = "forSeparator";
+  forSeparator.classList.add("forSeparator");
   forSeparator.appendChild(document.createTextNode("for"));
   semanticInput.appendChild(forSeparator);
 
@@ -131,11 +131,15 @@ function generatePricePerQuantityCell(product) {
   return td;
 }
 
+function formatToday() {
+  var date = new Date();
+  // TODO: Fix the localization.
+  return date.toLocaleDateString("en-US");
+}
+
 function generateDateCell(product) {
   var td = document.createElement("td");
-  var date = new Date(product.date);
-  // TODO: Fix the localization.
-  td.appendChild(document.createTextNode(date.toLocaleDateString("en-US")));
+  td.appendChild(document.createTextNode(product.date));
   return td;
 }
 
