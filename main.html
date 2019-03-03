@@ -48,7 +48,7 @@ input[type=number] {
 
 <div class="ui icon input">
   <i class="search icon"></i>
-  <input type="text" placeholder="Search products">
+  <input type="text" placeholder="Search products" id="search">
 </div>
 <button class="ui right floated primary button" id="add">Add</button>
 
@@ -250,10 +250,21 @@ function createTableRow(product) {
   return row;
 }
 
+// Returns the keys of the product that matches the search
+// query. If it empty, we return everything.
+function productsFilteredBySearch() {
+  const filter = document.getElementById("search").value;
+  var keys = Array.from(productMap.keys())
+  if (filter !== "") {
+    keys = keys.filter(key => key.startsWith(filter));
+  }
+  return keys.sort();
+}
+
 function populateTable() {
   const tbody = document.getElementsByTagName("tbody")[0];
   var new_tbody = document.createElement("tbody");
-  const keys = Array.from(productMap.keys()).sort();
+  const keys = productsFilteredBySearch();
   for (var key of keys) {
     const product = productMap.get(key);
     new_tbody.appendChild(createTableRow(product));
@@ -264,7 +275,7 @@ function populateTable() {
 function addNewProduct() {
   const product = new Product("", "", new Price(0, 1, "pound"), "", formatToday());
   productMap.set("", product);
-  // TODO: We need to migrate the element to a better position.
+  // TODO: We need to migrate the element to a better position once it is populated.
   const tbody = document.getElementsByTagName("tbody")[0];
   const row = createTableRow(product);
   tbody.insertBefore(row, tbody.firstChild);
@@ -287,6 +298,9 @@ function initializeApp() {
   populateProductMap();
   populateTable();
   $("#add").click(addNewProduct);
+  // This listens to input to react while the user is typing.
+  document.getElementById("search").addEventListener("input", populateTable);
 }
+
 window.addEventListener("load", initializeApp);
 </script>
