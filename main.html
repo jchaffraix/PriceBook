@@ -30,7 +30,7 @@ input[type=number] {
   width: 3em;
 }
 
-.size {
+.quantity {
   width: 2em;
 }
 
@@ -39,6 +39,7 @@ input[type=number] {
   margin-right: .5em;
 }
 </style>
+<!-- TODO: Switch to React-Semantic UI -->
 <!-- TODO: Provide my own theme (use lato: http://www.latofonts.com/) -->
 <!-- TODO: The header should be sticky to follow the viewport. -->
 <!-- TODO: Provide an add button -->
@@ -60,63 +61,107 @@ input[type=number] {
       <th class="dateHeader">Date</th>
     </tr>
   </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div class="ui transparent input">
-          <input type="text" value="Pear"></input>
-        </div>
-      </td>
-      <td>
-        <div class="ui transparent input">
-          <input type="text" value="Barlett"></input>
-        </div>
-      </td>
-      <td>
-        <div class="ui transparent input">
-          <span>$</span><input type="number" class="price" value="6.99" pattern="/^\d+\.?\d*$/" onKeyPress="if(this.value.length==5) return false;"/></input>
-          <span class="forSeparator">for</span>
-          <input type="number" value="1" class="size" pattern="\d" onKeyPress="if(this.value.length==3) return false;"></input>
-          <input type="text" value="pound"></input>
-        </div>
-      </td>
-      <td>$1.89/pound</td>
-      <td>
-        <div class="ui transparent input">
-          <input type="text" value="Safeway"></input>
-        </div>
-      </td>
-      <td>2/1/2019</td>
-    </tr>
-    <tr>
-      <td>
-        <div class="ui transparent input">
-          <input type="text" value="Hummus"></input>
-        </div>
-      </td>
-      <td>
-        <div class="ui transparent input">
-          <input type="text" value="Sabra"></input>
-        </div>
-      </td>
-      <td>
-        <div class="ui transparent input">
-          <span>$</span><input type="number" class="price" value="6.99" pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==5) return false;" /></input>
-          <span class="forSeparator">for</span>
-          <input type="number" value="17" class="size" pattern="\d" onKeyPress="if(this.value.length==3) return false;"></input>
-          <input type="text" value="oz"></input>
-        </div>
-      </td>
-      <td>$0.41/oz</td>
-      <td>
-        <div class="ui transparent input">
-          <input type="text" value="Lucky's"></input>
-        </div>
-      </td>
-      <td>12/1/2018</td>
-    </tr>
-  </tbody>
+  <tbody id="productList"></tbody>
 </table>
 
 </div>
+<script>
+function generateSingleTextInputCell(name) {
+  var td = document.createElement("td");
+  var semanticInput = document.createElement("div");
+  semanticInput.classList.add("ui");
+  semanticInput.classList.add("transparent");
+  semanticInput.classList.add("input");
+  var input = document.createElement("input");
+  input.type = "text";
+  input.value=name
+  semanticInput.appendChild(input);
+  td.appendChild(semanticInput);
+  return td;
+}
 
+function generatePriceAndQuantityCell(product) {
+  var td = document.createElement("td");
+  var semanticInput = document.createElement("div");
+  semanticInput.classList.add("ui");
+  semanticInput.classList.add("transparent");
+  semanticInput.classList.add("input");
+  var currency = document.createElement("span");
+  // TODO: Remove this hard-coding.
+  currency.appendChild(document.createTextNode("$"));
+  semanticInput.appendChild(currency);
+
+  var price = document.createElement("input");
+  price.type = "number";
+  price.classList.add("price");
+  price.pattern = "/^\d+\.?\d*$/";
+  price.value = product.price;
+  price.addEventListener("keypress", function(e) { if(e.target.value.length==5) e.preventDefault(); });
+  semanticInput.appendChild(price);
+
+  var forSeparator = document.createElement("span");
+  forSeparator.class = "forSeparator";
+  forSeparator.appendChild(document.createTextNode("for"));
+  semanticInput.appendChild(forSeparator);
+
+  var quantity = document.createElement("input");
+  quantity.type="number";
+  quantity.value=product.quantity;
+  quantity.classList.add("quantity");
+  quantity.pattern="\d";
+  quantity.addEventListener("keypress", function(e) { if(e.target.value.length==3) e.preventDefault(); });
+  semanticInput.appendChild(quantity);
+
+  var unit = document.createElement("input");
+  unit.type = "text";
+  unit.value = product.unit;
+  semanticInput.appendChild(unit);
+  td.appendChild(semanticInput);
+  return td;
+}
+
+function generatePricePerQuantityCell(product) {
+  var td = document.createElement("td");
+  var price = Math.round(100 * product.price / product.quantity) / 100;
+  // TODO: Remove this hard-coding.
+  td.appendChild(document.createTextNode("$"));
+  td.appendChild(document.createTextNode(price));
+  td.appendChild(document.createTextNode("/"));
+  td.appendChild(document.createTextNode(product.unit));
+  return td;
+}
+
+function generateDateCell(product) {
+  var td = document.createElement("td");
+  var date = new Date(product.date);
+  // TODO: Fix the localization.
+  td.appendChild(document.createTextNode(date.toLocaleDateString("en-US")));
+  return td;
+}
+
+function populateTable(products) {
+  var tbody = document.getElementsByTagName("tbody")[0];
+  var new_tbody = document.createElement("tbody");
+  for (var i = 0; i < products.length; ++i) {
+    var product = products[i];
+    var row = document.createElement("tr");
+    row.appendChild(generateSingleTextInputCell(product.name));
+    row.appendChild(generateSingleTextInputCell(product.brand));
+    row.appendChild(generatePriceAndQuantityCell(product));
+    row.appendChild(generatePricePerQuantityCell(product));
+    row.appendChild(generateDateCell(product));
+    new_tbody.appendChild(row);
+  }
+  tbody.parentNode.replaceChild(new_tbody, tbody);
+}
+
+function initializeApp() {
+  var products = [
+    {"name": "Pear", "brand": "Barlett", "price": 1.89, "quantity": 1, "unit": "pound", "date": "2/1/2019"},
+    {"name": "Hummus", "brand": "Sabra", "price": 6.99, "quantity": 17, "unit": "oz", "date": "12/1/2018"},
+  ];
+
+  populateTable(products);
+}
+window.addEventListener("load", initializeApp);
+</script>
