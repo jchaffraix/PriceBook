@@ -177,8 +177,9 @@ function updateModel(e) {
     row = row.parentNode;
   }
 
+  const oldName = row.childNodes[0].getElementsByTagName("input")[0].oldName;
   const name = row.childNodes[0].getElementsByTagName("input")[0].value;
-  var product = productMap.get(name);
+  var product = productMap.get(oldName);
 
   // Always update the brand and the place.
   const brand = row.childNodes[1].getElementsByTagName("input")[0].value;
@@ -188,8 +189,8 @@ function updateModel(e) {
 
 
   // TODO: Support multiple products!
-  if (product.name !== name) {
-    productMap.delete(product.name);
+  if (oldName !== name) {
+    productMap.delete(oldName);
     product.name = name;
     productMap.set(name, product);
   }
@@ -237,7 +238,10 @@ function populateTable() {
   var new_tbody = document.createElement("tbody");
   for (var [key, product] of productMap) {
     var row = document.createElement("tr");
-    row.appendChild(generateSingleTextInputCell(product.name));
+    var nameCell = generateSingleTextInputCell(product.name);
+    // Save the old name on focus to be able to update the map.
+    nameCell.getElementsByTagName("input")[0].addEventListener("focus", function(e) { e.target.oldName = e.target.value; });
+    row.appendChild(nameCell);
     row.appendChild(generateSingleTextInputCell(product.brand));
     row.appendChild(generatePriceAndQuantityCell(product.price));
     row.appendChild(generatePricePerQuantityCell(product.price));
