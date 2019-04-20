@@ -222,10 +222,10 @@ function createTableRow(product) {
 // Returns the products that match the search
 // query. If it empty, we return everything.
 function productsFilteredBySearch() {
-  const filter = document.getElementById("search").value;
+  const filter = new RegExp(document.getElementById("search").value, "i");
   var filteredProducts = Array.from(productList);
   if (filter !== "") {
-    filteredProducts = filteredProducts.filter(product => product.name.startsWith(filter));
+    filteredProducts = filteredProducts.filter(product => product.name.search(filter) != -1);
   }
   return filteredProducts.sort(function(productA, productB) {
     if (productA.name < productB.name)
@@ -250,6 +250,10 @@ function addNewProduct() {
   const product = new Product("", "", new Price(0, 1, ""), "", formatToday());
   productList.push(product);
   // TODO: We need to migrate the element to a better position once it is populated.
+  // TODO: There is a general issue around renaming and sorting where elements whose
+  // name changed are not moved to their appropriate position until we regenerate
+  // the table. This also means that |productList| is not sorted, which could have
+  // performance issues.
   const tbody = document.getElementsByTagName("tbody")[0];
   const row = createTableRow(product);
   tbody.insertBefore(row, tbody.firstChild);
