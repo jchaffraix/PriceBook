@@ -183,7 +183,7 @@ function formatToday() {
   return new Date().toISOString().split("T")[0];
 }
 
-function generateRemoveCell() {
+function generateIconsCell() {
   var cell = document.createElement("td");
   var removeIcon = document.createElement("i");
   removeIcon.classList.add("icon");
@@ -193,6 +193,14 @@ function generateRemoveCell() {
   removeIcon.addEventListener("touch", removeProduct);
   removeIcon.addEventListener("click", removeProduct);
   cell.appendChild(removeIcon);
+
+  var duplicateIcon = document.createElement("i");
+  duplicateIcon.classList.add("icon");
+  duplicateIcon.classList.add("copy");
+  duplicateIcon.classList.add("outline");
+  duplicateIcon.addEventListener("touch", duplicateProduct);
+  duplicateIcon.addEventListener("click", duplicateProduct);
+  cell.appendChild(duplicateIcon);
   return cell;
 }
 
@@ -200,7 +208,7 @@ function createTableRow(product) {
   // Save the model in the row so we can update it.
   var row = document.createElement("tr");
   row.product = product;
-  row.appendChild(generateRemoveCell());
+  row.appendChild(generateIconsCell());
   var nameCell = generateSingleTextInputCell(product.name);
   row.appendChild(nameCell);
   row.appendChild(generateSingleTextInputCell(product.brand));
@@ -256,6 +264,20 @@ function removeProduct(e) {
     const product = productList[i];
     if (product === productToRemove) {
       productList.splice(i, 1);
+      break;
+    }
+  }
+  saveProductList();
+  populateTable();
+}
+
+function duplicateProduct(e) {
+  const row = findEnclosingRow(e.target);
+  const productToDuplicate = row.product;
+  for (var i = 0; i < productList.length; ++i) {
+    const product = productList[i];
+    if (product === productToDuplicate) {
+      productList.splice(i, 0, productToDuplicate);
       break;
     }
   }
