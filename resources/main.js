@@ -408,3 +408,8 @@ function initializeApp() {
 }
 
 window.addEventListener("load", initializeApp);
+window.onbeforeunload = function() {
+  if (window.updateTimer !== null) {
+    return "Pending changes";
+  }
+}
