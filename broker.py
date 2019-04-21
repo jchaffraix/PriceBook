@@ -21,7 +21,8 @@ class PriceStore(ndb.Model):
 
   @classmethod
   def load(cls, user):
-    data = cls.query(ancestor = PriceStore.ancestorKey(user)).fetch(1)
+    # Every call to save creates a new copy so make sure to get the latest one.
+    data = cls.query(ancestor = PriceStore.ancestorKey(user)).order(-cls.lastUpdatedDate).fetch(1)
     if len(data):
       return data[0].data
     # Return an empty JSON object as the UI expects JSON.
