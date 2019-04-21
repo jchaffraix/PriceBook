@@ -315,6 +315,14 @@ function initializeApp() {
   populateProductList();
   populateTable();
   $("#add").click(addNewProduct);
+  // TODO: This will force the user to always click on the button.
+  // I can do better than this by querying directly and getting a 401.
+  $("#login").click(function() {
+    var win = window.open("/login", "login_window");
+    win.onunload = function() {
+      $("#login").css("display", "none");
+    };
+  });
   // This listens to input to react while the user is typing.
   document.getElementById("search").addEventListener("input", populateTable);
 }

@@ -12,6 +12,14 @@ handlers:
 - url: /
   script: broker.app
   secure: always
+- url: /store
+  script: broker.app
+  secure: always
+- url: /login
+  script: broker.app
+  secure: always
+  login: required
+
 
 libraries:
 - name: webapp2
