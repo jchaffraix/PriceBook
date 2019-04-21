@@ -292,23 +292,98 @@ function duplicateProduct(e) {
 var productList = new Array();
 
 function parseProductList(products) {
+  var newProductList = new Array();
   for (const product of products) {
     const price = product.price;
-    productList.push(new Product(product.name, product.brand, new Price(price.price, price.quantity, price.unit), product.place, product.date));
+    newProductList.push(new Product(product.name, product.brand, new Price(price.price, price.quantity, price.unit), product.place, product.date));
   }
+  return newProductList;
+}
+
+function fetchProductList() {
+  // TODO: I should keep track of the LMT to avoid
+  // cloberring local file.
+  $("#loader").addClass("active");
+  $.ajax({
+    dataType: "json",
+    url: "/store",
+    data: null,
+    success: function (products) {
+      // TODO: Add an animation?
+      $("#loader").removeClass("active");
+      $("#success").removeClass("disabled");
+      $("#failureHolder").addClass("disabled");
+      console.log("Fetch success");
+      // TODO: Sanity checks?
+      productList = parseProductList(products);
+      populateTable();
+    },
+    error: function (jXHR, textStatus, errorThrown) {
+      // TODO: Add an animation?
+      $("#loader").removeClass("active");
+      $("#success").addClass("disabled");
+      console.log("Fetch failed");
+      console.log(jXHR.status);
+      if (jXHR.status === 401) {
+        $("#login").removeClass("disabled");
+      } else {
+        $("#failureHolder").removeClass("disabled");
+      }
+    },
+  });
 }
 
 function populateProductList() {
+  // Load from localStorage first.
   var products = window.localStorage.getItem("products");
   // For first time users, localStorage will return null.
-  if (products === null)
-    return;
+  if (products !== null) {
+    productList = parseProductList(JSON.parse(products));
+  }
 
-  parseProductList(JSON.parse(products));
+  fetchProductList();
 }
 
+window.updateTimer = null;
 function saveProductList() {
   window.localStorage.setItem("products", JSON.stringify(productList));
+  // Kickstart the 10s update timer.
+  // TODO: This is not useful if the user is not logged in.
+  if (window.updateTimer === null) {
+    window.updateTimer = window.setTimeout(function() {
+      // TODO: Share this code.
+      $("#loader").addClass("active");
+      $("#success").addClass("disabled");
+      $("#failureHolder").addClass("disabled");
+      $.ajax({
+        method: "POST",
+        url: "/store",
+        data: JSON.stringify(productList),
+        success: function (products) {
+          // TODO: Add an animation?
+          $("#loader").removeClass("active");
+          $("#success").removeClass("disabled");
+          $("#failureHolder").addClass("disabled");
+          window.updateTimer = null;
+          console.log("Saved success");
+        },
+        error: function (jXHR, textStatus, errorThrown) {
+          // TODO: Add an animation?
+          $("#loader").removeClass("active");
+          $("#success").addClass("disabled");
+          window.updateTimer = null;
+          console.log("Failed");
+          console.log(jXHR.textStatus);
+          console.log(jXHR.errorThrown);
+          if (jXHR.status === 401) {
+            $("#login").removeClass("disabled");
+          } else {
+            $("#failureHolder").removeClass("disabled");
+          }
+        },
+      });
+    }, 5000 /* 5 seconds */);
+  }
 }
 
 function initializeApp() {
@@ -321,6 +396,7 @@ function initializeApp() {
     var win = window.open("/login", "login_window");
     win.onunload = function() {
       $("#login").css("display", "none");
+      fetchProductList();
     };
   });
   // This listens to input to react while the user is typing.

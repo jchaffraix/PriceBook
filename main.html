@@ -43,6 +43,18 @@ input[type=number] {
   margin-right: .5em;
   margin-right: .5em;
 }
+
+.disabled {
+  display: none !important;
+}
+
+#success {
+  color: green;
+}
+
+#failure {
+  color: red;
+}
 </style>
 </head>
 
@@ -56,8 +68,17 @@ input[type=number] {
   <i class="search icon"></i>
   <input type="text" placeholder="Search products" id="search">
 </div>
-<button class="ui right floated secondary button" id="login">Login</button>
+<span>
+  <i class="ui inline loader" id="loader"></i>
+  <i class="ui icon check disabled" id="success"></i>
+  <span class="disabled" id="failureHolder">
+    <i class="ui icon times" id="failure"></i>
+    <i class="ui icon redo" id="redo"></i>
+  </span>
+</span>
+
 <button class="ui right floated primary button" id="add">Add</button>
+<button class="ui right floated secondary button disabled" id="login">Login</button>
 
 
 <table class="ui selectable fixed table">

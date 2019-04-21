@@ -24,7 +24,8 @@ class PriceStore(ndb.Model):
     data = cls.query(ancestor = PriceStore.ancestorKey(user)).fetch(1)
     if len(data):
       return data[0].data
-    return ""
+    # Return an empty JSON object as the UI expects JSON.
+    return "[]"
 
 class PriceBookPage(webapp2.RequestHandler):
   def get(self):
