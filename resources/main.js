@@ -34,6 +34,10 @@ class Product {
     this.place = place;
     this.date = date;
   }
+
+  clone() {
+    return new Product(this.name, this.brand, this.price, this.place, this.date);
+  }
 }
 
 function generateDateInputCell(date) {
@@ -281,7 +285,7 @@ function duplicateProduct(e) {
   for (var i = 0; i < productList.length; ++i) {
     const product = productList[i];
     if (product === productToDuplicate) {
-      productList.splice(i, 0, productToDuplicate);
+      productList.splice(i, 0, productToDuplicate.clone());
       break;
     }
   }
