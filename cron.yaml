@@ -1,0 +1,5 @@
+cron:
+- description: "monthly scrub job"
+  url: /tasks/removeOldEntries
+  schedule: 1 of month 07:00
+  timezone: America/Los_Angeles

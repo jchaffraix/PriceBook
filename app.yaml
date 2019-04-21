@@ -19,6 +19,9 @@ handlers:
   script: broker.app
   secure: always
   login: required
+- url: /tasks/removeOldEntries
+  script: broker.app
+  secure: always
 
 
 libraries:

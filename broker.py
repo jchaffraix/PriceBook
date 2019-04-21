@@ -1,3 +1,4 @@
+from datetime import datetime,timedelta
 import hashlib
 import json
 import logging
@@ -8,7 +9,7 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 class PriceStore(ndb.Model):
-  lastUpdatedDate = ndb.DateProperty(auto_now=True)
+  creationTimestamp = ndb.DateTimeProperty(auto_now_add=True)
   data = ndb.StringProperty()
 
   @staticmethod
@@ -22,11 +23,24 @@ class PriceStore(ndb.Model):
   @classmethod
   def load(cls, user):
     # Every call to save creates a new copy so make sure to get the latest one.
-    data = cls.query(ancestor = PriceStore.ancestorKey(user)).order(-cls.lastUpdatedDate).fetch(1)
+    data = cls.query(ancestor = PriceStore.ancestorKey(user)).order(-cls.creationTimestamp).fetch(1)
     if len(data):
       return data[0].data
     # Return an empty JSON object as the UI expects JSON.
     return "[]"
+
+  @classmethod
+  def removeOldEntries(cls):
+    deadline = datetime.now() - timedelta(days=60)
+    logging.info("Starting cleanup with deadline = %s" % deadline)
+    keys_to_delete = []
+    for data in cls.query().iter():
+      logging.info("Seen entity with creationTimestamp = %s" % data.creationTimestamp)
+      if (data.creationTimestamp < deadline):
+        logging.info("Removing entity with creationTimestamp = %s" % data.creationTimestamp)
+        keys_to_delete.append(data.key())
+    ndb.delete_multi(keys_to_delete)
+
 
 class PriceBookPage(webapp2.RequestHandler):
   def get(self):
@@ -60,9 +74,15 @@ class LoginPage(webapp2.RequestHandler):
   def get(self):
     self.response.write("<!DOCTYPE html><script>window.close();</script>");
 
+class RemoveOldEntriesPage(webapp2.RequestHandler):
+  def get(self):
+    PriceStore.removeOldEntries()
+    self.response.write("Done")
+
 app = webapp2.WSGIApplication([
     ('/login', LoginPage),
     ('/store', PriceBookStorePage),
+    ('/tasks/removeOldEntries', RemoveOldEntriesPage),
     ('/', PriceBookPage),
 # TODO: Should I switch to debug=False?
 ], debug=True)
