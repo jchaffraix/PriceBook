@@ -27,24 +27,35 @@ class Price {
 }
 
 class Product {
-  constructor(name, brand, price, place, date) {
+  constructor(key, name, brand, price, place, date) {
+    // The key is an internal identifier used to deduplicate
+    // objects in the DB.
+    this._key = key;
     this.name = name;
     this.brand = brand;
     this.price = price;
     this.place = place;
     this.date = date;
+    // TODO: Add an LMT to handle conflicting writes.
   }
 
   static creatEmpty() {
-    return new Product("", "", new Price(0, 1, ""), "", formatToday());
+    return new Product(this._uniqueKey(), "", "", new Price(0, 1, ""), "", formatToday());
   }
+
   static createFromJSON(json) {
     const price = new Price(json.price.price, json.price.quantity, json.price.unit); 
-    return new Product(json.name, json.brand, price, json.place, json.date);
+    return new Product(json._key, json.name, json.brand, price, json.place, json.date);
   }
 
   clone() {
-    return new Product(this.name, this.brand, this.price, this.place, this.date);
+    // Clone generates a new key to ensure the objects are saved as different objects.
+    return new Product(this._uniqueKey(), this.name, this.brand, this.price, this.place, this.date);
+  }
+
+  static _uniqueKey() {
+    return Math.random().toString(36).substring(2)
+                 + (new Date()).getTime().toString(36);
   }
 }
 
