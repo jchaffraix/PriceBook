@@ -10,9 +10,8 @@ from google.appengine.ext import ndb
 
 class PriceStore(ndb.Model):
   creationTimestamp = ndb.DateTimeProperty(auto_now_add=True)
-  # TODO: Indexed property cannot be bigger than 1500 bytes.
   # TODO: Validate the data to avoid persistent XSS.
-  data = ndb.StringProperty()
+  data = ndb.TextProperty()
 
   @staticmethod
   def ancestorKey(user):
