@@ -35,6 +35,14 @@ class Product {
     this.date = date;
   }
 
+  static creatEmpty() {
+    return new Product("", "", new Price(0, 1, ""), "", formatToday());
+  }
+  static createFromJSON(json) {
+    const price = new Price(json.price.price, json.price.quantity, json.price.unit); 
+    return new Product(json.name, json.brand, price, json.place, json.date);
+  }
+
   clone() {
     return new Product(this.name, this.brand, this.price, this.place, this.date);
   }
@@ -251,7 +259,7 @@ function populateTable() {
 }
 
 function addNewProduct() {
-  const product = new Product("", "", new Price(0, 1, ""), "", formatToday());
+  const product = Product.creatEmpty();
   productList.push(product);
   // TODO: We need to migrate the element to a better position once it is populated.
   // TODO: There is a general issue around renaming and sorting where elements whose
@@ -298,8 +306,7 @@ var productList = new Array();
 function parseProductList(products) {
   var newProductList = new Array();
   for (const product of products) {
-    const price = product.price;
-    newProductList.push(new Product(product.name, product.brand, new Price(price.price, price.quantity, price.unit), product.place, product.date));
+    newProductList.push(Product.createFromJSON(product));
   }
   return newProductList;
 }
