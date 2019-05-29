@@ -8,10 +8,13 @@ import webapp2
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
+OBJECT_KEY = u"obj_key"
+
 class PriceStore(ndb.Model):
   creationTimestamp = ndb.DateTimeProperty(auto_now_add=True)
   # TODO: Validate the data to avoid persistent XSS.
-  data = ndb.TextProperty()
+  data = ndb.StringProperty()
+  obj_key = ndb.StringProperty()
 
   @staticmethod
   def ancestorKey(user):
@@ -19,14 +22,39 @@ class PriceStore(ndb.Model):
 
   @staticmethod
   def save(user, data):
-    PriceStore(parent = PriceStore.ancestorKey(user), data = data).put()
+    # This is super inefficient. This is because we have to fetch *all*
+    # the keys to find the matching ones and reuse them.
+    # TODO: Figure out how to do this efficiently (store the key in the object?).
+    objects = json.JSONDecoder().decode(data)
+    for object in objects:
+      products = PriceStore.query(ancestor=PriceStore.ancestorKey(user))
+      foundProduct = False
+      for product in products.fetch():
+        if (product.obj_key == object[OBJECT_KEY]):
+          product.data = json.dumps(object)
+          product.put()
+          foundProduct = True
+          break
+      if not foundProduct:
+        PriceStore(parent = PriceStore.ancestorKey(user), obj_key = object[u"obj_key"], data = json.dumps(object)).put()
+
+
+  # TODO: We need a delete method.
+  # TODO: This schema needs to be aligned with what we want to do.
+  # TODO: Implement a way to fetch the key and just use the storage key for efficiency.
 
   @classmethod
   def load(cls, user):
-    # Every call to save creates a new copy so make sure to get the latest one.
-    data = cls.query(ancestor = PriceStore.ancestorKey(user)).order(-cls.creationTimestamp).fetch(1)
+    data = cls.query(ancestor = PriceStore.ancestorKey(user)).fetch()
     if len(data):
-      return data[0].data
+      # TODO: This is not great. Refactor this into a better abstraction.
+      s = "["
+      for d in data:
+        s += d.data
+        s += ","
+      s = s[:-1]
+      s += "]"
+      return s
     # Return an empty JSON object as the UI expects JSON.
     return "[]"
 

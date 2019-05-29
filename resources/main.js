@@ -30,7 +30,7 @@ class Product {
   constructor(key, name, brand, price, place, date) {
     // The key is an internal identifier used to deduplicate
     // objects in the DB.
-    this._key = key;
+    this.obj_key = key;
     this.name = name;
     this.brand = brand;
     this.price = price;
@@ -45,12 +45,12 @@ class Product {
 
   static createFromJSON(json) {
     const price = new Price(json.price.price, json.price.quantity, json.price.unit); 
-    return new Product(json._key, json.name, json.brand, price, json.place, json.date);
+    return new Product(json.obj_key, json.name, json.brand, price, json.place, json.date);
   }
 
   clone() {
     // Clone generates a new key to ensure the objects are saved as different objects.
-    return new Product(this._uniqueKey(), this.name, this.brand, this.price, this.place, this.date);
+    return new Product(Product._uniqueKey(), this.name, this.brand, this.price, this.place, this.date);
   }
 
   static _uniqueKey() {
