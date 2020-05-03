@@ -57,3 +57,29 @@ func TestRemoveInvalidKey(t *testing.T) {
     t.Fatalf("Did not get an error when removing an inexistent key")
   }
 }
+
+func TestUpdateValidElement(t *testing.T) {
+  ds := NewInMemoryDataStore()
+  key, e := ds.Add(Item{"Carrot", 1, "lb"});
+  if e != nil {
+    t.Fatalf("Unexpected error when inserting valid item")
+  }
+
+  newItem := Item{"Carrot 2", 2, "lb"};
+  e = ds.Update(key, newItem)
+  if e != nil {
+    t.Fatalf("Unexpected error when updating valid item")
+  }
+  it := ds.m[key]
+  if it != newItem {
+    t.Fatalf("Item was not updated")
+  }
+}
+
+func TestUpdateInvalidKey(t *testing.T) {
+  ds := NewInMemoryDataStore()
+  e := ds.Update("inexistent", Item{"Carrot", 1, "lb"});
+  if e == nil {
+    t.Fatalf("Error was not raised when calling Update on inexistent key")
+  }
+}

@@ -2,7 +2,6 @@ package datastore
 
 import (
   "math/rand"
-  "errors"
 )
 
 
@@ -47,7 +46,12 @@ func (ds *InMemoryDataStore) Delete(key string) error {
 }
 
 func (ds *InMemoryDataStore) Update(key string, it Item) error {
-  return errors.New("Not implemented")
+  _, found := ds.m[key]
+  if found {
+    ds.m[key] = it
+    return nil
+  }
+  return &NotFoundError{key}
 }
 
 
