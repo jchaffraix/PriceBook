@@ -11,7 +11,6 @@ import (
 )
 
 type defaultHandler struct {
-  ds *datastore.IDataStore
 }
 
 func (defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -24,15 +23,9 @@ func (defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-  var localPtr = flag.Bool("local", false, "Set the binary for local testing")
+  var inMemoryPtr = flag.Bool("inmemory", false, "Toggle the datastore to in-memory for local testing")
   flag.Parse()
-
-  var ds datastore.IDataStore
-  if *localPtr {
-    ds = datastore.NewInMemoryDataStore()
-  } else {
-    ds = datastore.NewGoogleDataStore()
-  }
+  datastore.Init(*inMemoryPtr);
 
   port := os.Getenv("PORT")
   if port == "" {
@@ -40,11 +33,9 @@ func main() {
     log.Printf("Defaulting to port %s", port)
   }
 
-  http.Handle("/", defaultHandler{&ds})
+  http.Handle("/", defaultHandler{})
 
   if err := http.ListenAndServe(":"+port, nil); err != nil {
     log.Fatal(err)
   }
 }
-
-

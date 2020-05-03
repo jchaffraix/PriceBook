@@ -15,7 +15,6 @@ type GoogleDataStore struct {
 }
 
 func NewGoogleDataStore() *GoogleDataStore {
-  // TODO: Singleton?
   ctx := context.Background()
 
   // Creates a client.

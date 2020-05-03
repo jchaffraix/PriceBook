@@ -13,3 +13,17 @@ type IDataStore interface {
   Delete(key string) error
   Update(key string, it Item) error
 }
+
+var ds IDataStore
+
+func Init(isInMemory bool) {
+  if isInMemory {
+    ds = NewInMemoryDataStore();
+  } else {
+    ds = NewGoogleDataStore();
+  }
+}
+
+func Get() *IDataStore {
+  return &ds;
+}
