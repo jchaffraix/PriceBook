@@ -41,6 +41,7 @@ func (ds *GoogleDataStore) Add(it Item) (string, error) {
     return "", err
   }
 
+  // TODO: Should I use Key.GobEncode/GobDecode?
   return strconv.FormatInt(key.ID, 16), nil
 }
 
