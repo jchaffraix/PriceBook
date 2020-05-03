@@ -4,7 +4,9 @@ import (
   "testing"
 )
 
-func TestAddInMemory(t *testing.T) {
+// TODO: We should find a way to share this test suite with inmemorydatastore_test.go.
+
+func TestAddGoogle(t *testing.T) {
   tt := []struct {
     name string
     it Item
@@ -16,7 +18,7 @@ func TestAddInMemory(t *testing.T) {
 
   for _, tc := range tt {
     t.Run(tc.name, func(t *testing.T) {
-      ds := NewInMemoryDataStore()
+      ds := NewGoogleDataStore()
       key, e := ds.Add(tc.it)
       if tc.expectError {
         if e == nil {
@@ -34,32 +36,29 @@ func TestAddInMemory(t *testing.T) {
   }
 }
 
-func TestRemoveValidElementInMemory(t *testing.T) {
-  ds := NewInMemoryDataStore()
+func TestRemoveValidElementGoogle(t *testing.T) {
+  ds := NewGoogleDataStore()
   key, e := ds.Add(Item{"Carrot", 1, "lb"});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
   e = ds.Delete(key)
   if e != nil {
-    t.Fatalf("Unexpected error when removing valid key (error=%v", e)
+    t.Fatalf("Unexpected error when removing valid key (error=%v)", e)
   }
-  _, found := ds.m[key]
-  if found {
-    t.Fatalf("Key was not removed despite no error returned")
-  }
+  // TODO: Add a Query to the API to validate that it is gone.
 }
 
-func TestRemoveInvalidKeyInMemory(t *testing.T) {
-  ds := NewInMemoryDataStore()
+func TestRemoveInvalidKeyGoogle(t *testing.T) {
+  ds := NewGoogleDataStore()
   e := ds.Delete("inexistent")
   if e == nil {
-    t.Fatalf("Did not get an error when removing an inexistent key")
+    t.Fatalf("Did not get an error when removing an inexistent key (error=%v)", e)
   }
 }
 
-func TestUpdateValidElementInMemory(t *testing.T) {
-  ds := NewInMemoryDataStore()
+func TestUpdateValidElementGoogle(t *testing.T) {
+  ds := NewGoogleDataStore()
   key, e := ds.Add(Item{"Carrot", 1, "lb"});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
@@ -70,14 +69,11 @@ func TestUpdateValidElementInMemory(t *testing.T) {
   if e != nil {
     t.Fatalf("Unexpected error when updating valid item (error=%v)", e)
   }
-  it := ds.m[key]
-  if it != newItem {
-    t.Fatalf("Item was not updated")
-  }
+  // TODO: Add a Query to the API to validate that it is gone.
 }
 
-func TestUpdateInvalidKeyInMemory(t *testing.T) {
-  ds := NewInMemoryDataStore()
+func TestUpdateInvalidKeyGoogle(t *testing.T) {
+  ds := NewGoogleDataStore()
   e := ds.Update("inexistent", Item{"Carrot", 1, "lb"});
   if e == nil {
     t.Fatalf("Error was not raised when calling Update on inexistent key")
