@@ -5,6 +5,7 @@ import (
   "log"
   "strconv"
 
+  "google.golang.org/api/iterator"
   "cloud.google.com/go/datastore"
 )
 
@@ -81,4 +82,24 @@ func (ds *GoogleDataStore) Update(userID, key string, it Item) error {
 
   _, err = ds.client.Put(ds.ctx, ds_key, &it)
   return err
+}
+
+func (ds *GoogleDataStore) Get(userID string) []Item {
+  ancestorKey := datastore.NameKey(USER_TABLE, userID, nil)
+  query := datastore.NewQuery(ITEM_TABLE).Ancestor(ancestorKey)
+  var res []Item
+  it := ds.client.Run(ds.ctx, query)
+  for {
+    var item Item
+    key, err := it.Next(&item)
+    log.Printf("Key = %+v", key)
+    if err == iterator.Done {
+      break;
+    }
+    if err != nil {
+      log.Fatalf("Error reading the data: %+v", err)
+    }
+    res = append(res, item)
+  }
+  return res
 }

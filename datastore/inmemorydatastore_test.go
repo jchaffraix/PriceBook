@@ -31,6 +31,13 @@ func TestAddInMemory(t *testing.T) {
         if key == "" {
           t.Fatalf("Expect a valid key when no error was thrown!")
         }
+        items := ds.Get(INMEMORY_USER_ID)
+        if len(items) != 1 {
+          t.Fatalf("Wrong number of items after insertion: %+v", items)
+        }
+        if items[0] != tc.it {
+          t.Fatalf("Wrong item stored, inserted=%+v, got=%+v", tc.it, items[0])
+        }
       }
     })
   }
@@ -46,10 +53,9 @@ func TestRemoveValidElementInMemory(t *testing.T) {
   if e != nil {
     t.Fatalf("Unexpected error when removing valid key (error=%v", e)
   }
-  // TODO: Switch to get!
-  _, found := ds.m[INMEMORY_USER_ID + key]
-  if found {
-    t.Fatalf("Key was not removed despite no error returned")
+  items := ds.Get(INMEMORY_USER_ID)
+  if len(items) != 0 {
+    t.Fatalf("Remaining items after delete: %+v", items)
   }
 }
 
@@ -73,9 +79,14 @@ func TestUpdateValidElementInMemory(t *testing.T) {
   if e != nil {
     t.Fatalf("Unexpected error when updating valid item (error=%v)", e)
   }
-  // TODO: Switch to get!
-  it := ds.m[INMEMORY_USER_ID + key]
-  if it != newItem {
+
+  // Check that the element is removed.
+  items := ds.Get(INMEMORY_USER_ID)
+  if len(items) != 1 {
+    t.Fatalf("Wrong number of items: %+v", items)
+  }
+
+  if items[0] != newItem {
     t.Fatalf("Item was not updated")
   }
 }

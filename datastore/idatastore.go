@@ -4,14 +4,16 @@ type Item struct {
   Name string
   Quantity float32
   Unit string
+  // TODO: Need to add store
   // TODO: Which format for the date.
   // TODO: Add the timeseries.
 }
 
 type IDataStore interface {
   Add(userID string, it Item) (string, error)
-  Delete(userID string, key string) error
-  Update(userID string, key string, it Item) error
+  Delete(userID, key string) error
+  Update(userID, key string, it Item) error
+  Get(userID string) []Item
 }
 
 // Error raised when the Item to be stored is invalid.

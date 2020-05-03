@@ -2,8 +2,8 @@ package datastore
 
 import (
   "math/rand"
+  "strings"
 )
-
 
 type InMemoryDataStore struct {
   m map[string] Item
@@ -55,4 +55,14 @@ func (ds *InMemoryDataStore) Update(userID, key string, it Item) error {
     return nil
   }
   return &NotFoundError{fullKey}
+}
+
+func (ds *InMemoryDataStore) Get(userID string) []Item {
+  var res []Item
+  for key, it := range (ds.m) {
+    if strings.HasPrefix(key, userID) {
+      res = append(res, it)
+    }
+  }
+  return res
 }
