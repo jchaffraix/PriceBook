@@ -14,6 +14,16 @@ type IDataStore interface {
   Update(key string, it Item) error
 }
 
+// Error raised when the Item to be stored is invalid.
+type InvalidItemError struct {
+  validationError string
+}
+
+func (e *InvalidItemError) Error() string {
+  // TODO: Improve error reporting.
+  return e.validationError
+}
+
 var ds IDataStore
 
 func Init(isInMemory bool) {
