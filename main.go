@@ -10,6 +10,7 @@ import (
   "os"
 
   "github.com/jchaffraix/PriceBook/datastore"
+  "github.com/jchaffraix/PriceBook/identity"
 )
 
 type defaultHandler struct {
@@ -103,8 +104,10 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
   var inMemoryPtr = flag.Bool("inmemory", false, "Toggle the datastore to in-memory for local testing")
+  var fakeUserPtr = flag.String("fake_user_id", "", "Toggle FakeIdentity for local testing")
   flag.Parse()
-  datastore.Init(*inMemoryPtr);
+  datastore.Init(*inMemoryPtr)
+  identity.Init(*fakeUserPtr)
 
   port := os.Getenv("PORT")
   if port == "" {
