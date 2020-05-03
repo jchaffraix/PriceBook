@@ -9,9 +9,9 @@ type Item struct {
 }
 
 type IDataStore interface {
-  Add(it Item) (string, error)
-  Delete(key string) error
-  Update(key string, it Item) error
+  Add(userID string, it Item) (string, error)
+  Delete(userID string, key string) error
+  Update(userID string, key string, it Item) error
 }
 
 // Error raised when the Item to be stored is invalid.

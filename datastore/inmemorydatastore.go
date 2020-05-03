@@ -26,33 +26,33 @@ func randomKey() string {
   return string(b)
 }
 
-func (ds *InMemoryDataStore) Add(it Item) (string, error) {
+func (ds *InMemoryDataStore) Add(userID string, it Item) (string, error) {
   if it.Name == "" {
     return "", &InvalidItemError{"Missing 'name'"}
   }
 
   key := randomKey()
-  ds.m[key] = it
+  fullKey := userID + key
+  ds.m[fullKey] = it
   return key, nil
 }
 
-func (ds *InMemoryDataStore) Delete(key string) error {
-  _, found := ds.m[key]
+func (ds *InMemoryDataStore) Delete(userID, key string) error {
+  fullKey := userID + key
+  _, found := ds.m[fullKey]
   if found {
-    delete(ds.m, key)
+    delete(ds.m, fullKey)
     return nil
   }
-  return &NotFoundError{key}
+  return &NotFoundError{fullKey}
 }
 
-func (ds *InMemoryDataStore) Update(key string, it Item) error {
-  _, found := ds.m[key]
+func (ds *InMemoryDataStore) Update(userID, key string, it Item) error {
+  fullKey := userID + key
+  _, found := ds.m[fullKey]
   if found {
-    ds.m[key] = it
+    ds.m[fullKey] = it
     return nil
   }
-  return &NotFoundError{key}
+  return &NotFoundError{fullKey}
 }
-
-
-

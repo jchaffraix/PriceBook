@@ -27,6 +27,7 @@ func (defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type addHandler struct {
   ds datastore.IDataStore
+  id identity.IIdentity
 }
 
 func (h addHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +40,8 @@ func (h addHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     http.Error(w, err.Error(), http.StatusBadRequest)
     return
   }
-  key, err := h.ds.Add(it)
+  userID := h.id.GetUserID(r)
+  key, err := h.ds.Add(userID, it)
   if err != nil {
     http.Error(w, err.Error(), http.StatusBadRequest)
     return
@@ -51,6 +53,7 @@ func (h addHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type deleteHandler struct {
   ds datastore.IDataStore
+  id identity.IIdentity
 }
 
 func (h deleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +71,8 @@ func (h deleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  err = h.ds.Delete(string(key[:n]))
+  userID := h.id.GetUserID(r)
+  err = h.ds.Delete(userID, string(key[:n]))
   if err != nil {
     http.Error(w, err.Error(), http.StatusBadRequest)
     return
@@ -78,6 +82,7 @@ func (h deleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type updateHandler struct {
   ds datastore.IDataStore
+  id identity.IIdentity
 }
 
 type UpdatePayload struct {
@@ -94,7 +99,8 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     http.Error(w, err.Error(), http.StatusBadRequest)
     return
   }
-  err = h.ds.Update(payload.ID, payload.It)
+  userID := h.id.GetUserID(r)
+  err = h.ds.Update(userID, payload.ID, payload.It)
   if err != nil {
     http.Error(w, err.Error(), http.StatusBadRequest)
     return
@@ -116,9 +122,9 @@ func main() {
   }
 
   http.Handle("/", defaultHandler{})
-  http.Handle("/add", addHandler{datastore.Get()})
-  http.Handle("/delete", deleteHandler{datastore.Get()})
-  http.Handle("/update", updateHandler{datastore.Get()})
+  http.Handle("/add", addHandler{datastore.Get(), identity.Get()})
+  http.Handle("/delete", deleteHandler{datastore.Get(), identity.Get()})
+  http.Handle("/update", updateHandler{datastore.Get(), identity.Get()})
 
   if err := http.ListenAndServe(":"+port, nil); err != nil {
     log.Fatal(err)

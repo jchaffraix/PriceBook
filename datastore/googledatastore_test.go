@@ -4,6 +4,8 @@ import (
   "testing"
 )
 
+const GOOGLE_USER_ID string = "user_1"
+
 // TODO: We should find a way to share this test suite with inmemorydatastore_test.go.
 
 func TestAddGoogle(t *testing.T) {
@@ -19,7 +21,7 @@ func TestAddGoogle(t *testing.T) {
   for _, tc := range tt {
     t.Run(tc.name, func(t *testing.T) {
       ds := NewGoogleDataStore()
-      key, e := ds.Add(tc.it)
+      key, e := ds.Add(GOOGLE_USER_ID, tc.it)
       if tc.expectError {
         if e == nil {
           t.Fatalf("Expected error but didn't get one")
@@ -38,11 +40,11 @@ func TestAddGoogle(t *testing.T) {
 
 func TestRemoveValidElementGoogle(t *testing.T) {
   ds := NewGoogleDataStore()
-  key, e := ds.Add(Item{"Carrot", 1, "lb"});
+  key, e := ds.Add(GOOGLE_USER_ID, Item{"Carrot", 1, "lb"});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
-  e = ds.Delete(key)
+  e = ds.Delete(GOOGLE_USER_ID, key)
   if e != nil {
     t.Fatalf("Unexpected error when removing valid key (error=%v)", e)
   }
@@ -51,7 +53,7 @@ func TestRemoveValidElementGoogle(t *testing.T) {
 
 func TestRemoveInvalidKeyGoogle(t *testing.T) {
   ds := NewGoogleDataStore()
-  e := ds.Delete("inexistent")
+  e := ds.Delete(GOOGLE_USER_ID, "inexistent")
   if e == nil {
     t.Fatalf("Did not get an error when removing an inexistent key (error=%v)", e)
   }
@@ -59,13 +61,13 @@ func TestRemoveInvalidKeyGoogle(t *testing.T) {
 
 func TestUpdateValidElementGoogle(t *testing.T) {
   ds := NewGoogleDataStore()
-  key, e := ds.Add(Item{"Carrot", 1, "lb"});
+  key, e := ds.Add(GOOGLE_USER_ID, Item{"Carrot", 1, "lb"});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
 
   newItem := Item{"Carrot 2", 2, "lb"};
-  e = ds.Update(key, newItem)
+  e = ds.Update(GOOGLE_USER_ID, key, newItem)
   if e != nil {
     t.Fatalf("Unexpected error when updating valid item (error=%v)", e)
   }
@@ -74,8 +76,27 @@ func TestUpdateValidElementGoogle(t *testing.T) {
 
 func TestUpdateInvalidKeyGoogle(t *testing.T) {
   ds := NewGoogleDataStore()
-  e := ds.Update("inexistent", Item{"Carrot", 1, "lb"});
+  e := ds.Update(GOOGLE_USER_ID, "inexistent", Item{"Carrot", 1, "lb"});
   if e == nil {
     t.Fatalf("Error was not raised when calling Update on inexistent key")
+  }
+}
+
+func TestDoNotTouchWrongUserGoogle(t *testing.T) {
+  ds := NewGoogleDataStore()
+  key, e := ds.Add(GOOGLE_USER_ID, Item{"Carrot", 1, "lb"});
+  if e != nil {
+    t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
+  }
+
+  newItem := Item{"Carrot 2", 2, "lb"};
+  e = ds.Update("not_user_1", key, newItem)
+  if e == nil {
+    t.Fatalf("Should not have updated another user's key")
+  }
+
+  e = ds.Delete("not_user_1", key)
+  if e == nil {
+    t.Fatalf("Should not have deleted another user's key")
   }
 }
