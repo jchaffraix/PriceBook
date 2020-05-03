@@ -1,8 +1,10 @@
 package main
 
 import (
+  "encoding/json"
   "flag"
   "fmt"
+  "io"
   "log"
   "net/http"
   "os"
@@ -22,6 +24,57 @@ func (defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   fmt.Fprintf(w, "Hello World!")
 }
 
+type addHandler struct {
+  ds datastore.IDataStore
+}
+
+func (h addHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+  // TODO: I should do user validation using
+  // https://cloud.google.com/go/getting-started/authenticate-users-with-iap
+
+  var it datastore.Item
+  err := json.NewDecoder(r.Body).Decode(&it)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
+  key, err := h.ds.Add(it)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
+
+  // TODO: Do I want a better format? Maybe json?
+  fmt.Fprintf(w, key)
+}
+
+type deleteHandler struct {
+  ds datastore.IDataStore
+}
+
+func (h deleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+  // TODO: I should do user validation using
+  // https://cloud.google.com/go/getting-started/authenticate-users-with-iap
+
+  // The key is 64 bits, encoded in base 16 so 2 letters per byte.
+  key := make([]byte, 128)
+  n, err := r.Body.Read(key)
+
+  // If there was any error, we just bail out. This is in contradiction
+  // to the io.Reader documentation but it's the safe thing to do here.
+  if err != nil && err != io.EOF {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
+
+  err = h.ds.Delete(string(key[:n]))
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
+  fmt.Fprintf(w, "Deleted")
+}
+
 func main() {
   var inMemoryPtr = flag.Bool("inmemory", false, "Toggle the datastore to in-memory for local testing")
   flag.Parse()
@@ -34,6 +87,8 @@ func main() {
   }
 
   http.Handle("/", defaultHandler{})
+  http.Handle("/add", addHandler{datastore.Get()})
+  http.Handle("/delete", deleteHandler{datastore.Get()})
 
   if err := http.ListenAndServe(":"+port, nil); err != nil {
     log.Fatal(err)

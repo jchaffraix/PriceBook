@@ -43,6 +43,6 @@ func Init(isInMemory bool) {
   }
 }
 
-func Get() *IDataStore {
-  return &ds;
+func Get() IDataStore {
+  return ds;
 }
