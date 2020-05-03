@@ -22,8 +22,9 @@ func TestAddGoogle(t *testing.T) {
     it Item
     expectError bool
   }{
-    {"Valid item", Item{"Carrot", 1, "lb"}, /*expectError*/false},
+    {"Valid item", Item{"", "Carrot", 1, "lb"}, /*expectError*/false},
     {"Empty item", Item{}, /*expectError*/true},
+    {"Item with a key", Item{"1234", "Carrot", 1, "lb"}, /*expectError*/true},
   }
 
   for _, tc := range tt {
@@ -56,7 +57,7 @@ func TestAddGoogle(t *testing.T) {
 
 func TestRemoveValidElementGoogle(t *testing.T) {
   ds := NewGoogleDataStore()
-  key, e := ds.Add(GOOGLE_USER_ID, Item{"Carrot", 1, "lb"});
+  key, e := ds.Add(GOOGLE_USER_ID, Item{"", "Carrot", 1, "lb"});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
@@ -80,13 +81,13 @@ func TestRemoveInvalidKeyGoogle(t *testing.T) {
 
 func TestUpdateValidElementGoogle(t *testing.T) {
   ds := NewGoogleDataStore()
-  key, e := ds.Add(GOOGLE_USER_ID, Item{"Carrot", 1, "lb"});
+  key, e := ds.Add(GOOGLE_USER_ID, Item{"", "Carrot", 1, "lb"});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
 
-  newItem := Item{"Carrot 2", 2, "lb"};
-  e = ds.Update(GOOGLE_USER_ID, key, newItem)
+  newItem := Item{key, "Carrot 2", 2, "lb"};
+  e = ds.Update(GOOGLE_USER_ID, newItem)
   if e != nil {
     t.Fatalf("Unexpected error when updating valid item (error=%v)", e)
   }
@@ -105,7 +106,7 @@ func TestUpdateValidElementGoogle(t *testing.T) {
 
 func TestUpdateInvalidKeyGoogle(t *testing.T) {
   ds := NewGoogleDataStore()
-  e := ds.Update(GOOGLE_USER_ID, "inexistent", Item{"Carrot", 1, "lb"});
+  e := ds.Update(GOOGLE_USER_ID, Item{"inexistent", "Carrot", 1, "lb"});
   if e == nil {
     t.Fatalf("Error was not raised when calling Update on inexistent key")
   }
@@ -113,13 +114,13 @@ func TestUpdateInvalidKeyGoogle(t *testing.T) {
 
 func TestDoNotTouchWrongUserGoogle(t *testing.T) {
   ds := NewGoogleDataStore()
-  key, e := ds.Add(GOOGLE_USER_ID, Item{"Carrot", 1, "lb"});
+  key, e := ds.Add(GOOGLE_USER_ID, Item{"", "Carrot", 1, "lb"});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
 
-  newItem := Item{"Carrot 2", 2, "lb"};
-  e = ds.Update("not_user_1", key, newItem)
+  newItem := Item{key, "Carrot 2", 2, "lb"};
+  e = ds.Update("not_user_1", newItem)
   if e == nil {
     t.Fatalf("Should not have updated another user's key")
   }

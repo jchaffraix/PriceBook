@@ -12,8 +12,9 @@ func TestAddInMemory(t *testing.T) {
     it Item
     expectError bool
   }{
-    {"Valid item", Item{"Carrot", 1, "lb"}, /*expectError*/false},
+    {"Valid item", Item{"", "Carrot", 1, "lb"}, /*expectError*/false},
     {"Empty item", Item{}, /*expectError*/true},
+    {"Item with a key", Item{"1234", "Carrot", 1, "lb"}, /*expectError*/true},
   }
 
   for _, tc := range tt {
@@ -45,7 +46,7 @@ func TestAddInMemory(t *testing.T) {
 
 func TestRemoveValidElementInMemory(t *testing.T) {
   ds := NewInMemoryDataStore()
-  key, e := ds.Add(INMEMORY_USER_ID, Item{"Carrot", 1, "lb"});
+  key, e := ds.Add(INMEMORY_USER_ID, Item{"", "Carrot", 1, "lb"});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
@@ -69,13 +70,13 @@ func TestRemoveInvalidKeyInMemory(t *testing.T) {
 
 func TestUpdateValidElementInMemory(t *testing.T) {
   ds := NewInMemoryDataStore()
-  key, e := ds.Add(INMEMORY_USER_ID, Item{"Carrot", 1, "lb"});
+  key, e := ds.Add(INMEMORY_USER_ID, Item{"", "Carrot", 1, "lb"});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
 
-  newItem := Item{"Carrot 2", 2, "lb"};
-  e = ds.Update(INMEMORY_USER_ID, key, newItem)
+  newItem := Item{key, "Carrot 2", 2, "lb"};
+  e = ds.Update(INMEMORY_USER_ID, newItem)
   if e != nil {
     t.Fatalf("Unexpected error when updating valid item (error=%v)", e)
   }
@@ -93,7 +94,7 @@ func TestUpdateValidElementInMemory(t *testing.T) {
 
 func TestUpdateInvalidKeyInMemory(t *testing.T) {
   ds := NewInMemoryDataStore()
-  e := ds.Update(INMEMORY_USER_ID, "inexistent", Item{"Carrot", 1, "lb"});
+  e := ds.Update(INMEMORY_USER_ID, Item{"inexistent", "Carrot", 1, "lb"});
   if e == nil {
     t.Fatalf("Error was not raised when calling Update on inexistent key")
   }
@@ -101,13 +102,13 @@ func TestUpdateInvalidKeyInMemory(t *testing.T) {
 
 func TestDoNotTouchWrongUserInMemory(t *testing.T) {
   ds := NewInMemoryDataStore()
-  key, e := ds.Add(INMEMORY_USER_ID, Item{"Carrot", 1, "lb"});
+  key, e := ds.Add(INMEMORY_USER_ID, Item{"", "Carrot", 1, "lb"});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
 
-  newItem := Item{"Carrot 2", 2, "lb"};
-  e = ds.Update("not_user_1", key, newItem)
+  newItem := Item{key, "Carrot 2", 2, "lb"};
+  e = ds.Update("not_user_1", newItem)
   if e == nil {
     t.Fatalf("Should not have updated another user's key")
   }

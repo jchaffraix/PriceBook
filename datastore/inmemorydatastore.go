@@ -1,6 +1,7 @@
 package datastore
 
 import (
+  "errors"
   "math/rand"
   "strings"
 )
@@ -27,6 +28,10 @@ func randomKey() string {
 }
 
 func (ds *InMemoryDataStore) Add(userID string, it Item) (string, error) {
+  if it.ID != "" {
+    return "", &InvalidItemError{"Unexpected ID in Add"}
+  }
+
   if it.Name == "" {
     return "", &InvalidItemError{"Missing 'name'"}
   }
@@ -47,8 +52,12 @@ func (ds *InMemoryDataStore) Delete(userID, key string) error {
   return &NotFoundError{fullKey}
 }
 
-func (ds *InMemoryDataStore) Update(userID, key string, it Item) error {
-  fullKey := userID + key
+func (ds *InMemoryDataStore) Update(userID string, it Item) error {
+  if it.ID == "" {
+    return errors.New("Missing key for update")
+  }
+
+  fullKey := userID + it.ID
   _, found := ds.m[fullKey]
   if found {
     ds.m[fullKey] = it

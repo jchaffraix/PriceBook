@@ -85,22 +85,17 @@ type updateHandler struct {
   id identity.IIdentity
 }
 
-type UpdatePayload struct {
-  ID string `json:"id"`
-  It datastore.Item `json:"item"`
-}
-
 func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   // TODO: I should do user validation using
   // https://cloud.google.com/go/getting-started/authenticate-users-with-iap
-  var payload UpdatePayload
-  err := json.NewDecoder(r.Body).Decode(&payload)
+  var payload Item
+  err := json.NewDecoder(r.Body).Decode(&item)
   if err != nil {
     http.Error(w, err.Error(), http.StatusBadRequest)
     return
   }
   userID := h.id.GetUserID(r)
-  err = h.ds.Update(userID, payload.ID, payload.It)
+  err = h.ds.Update(userID, item)
   if err != nil {
     http.Error(w, err.Error(), http.StatusBadRequest)
     return

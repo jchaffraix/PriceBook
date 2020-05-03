@@ -2,6 +2,7 @@ package datastore
 
 import (
   "context"
+  "errors"
   "log"
   "strconv"
 
@@ -32,6 +33,10 @@ func NewGoogleDataStore() *GoogleDataStore {
 
 func (ds *GoogleDataStore) Add(userID string, it Item) (string, error) {
   // TODO: Share the validation code with the InMemoryDataStore.
+  if it.ID != "" {
+    return "", &InvalidItemError{"Unexpected ID in Add"}
+  }
+
   if it.Name == "" {
     return "", &InvalidItemError{"Missing 'name'"}
   }
@@ -66,8 +71,12 @@ func (ds *GoogleDataStore) Delete(userID, key string) error {
   return ds.client.Delete(ds.ctx, ds_key)
 }
 
-func (ds *GoogleDataStore) Update(userID, key string, it Item) error {
-  id, err := strconv.ParseInt(key, 16, 64)
+func (ds *GoogleDataStore) Update(userID string, it Item) error {
+  if it.ID == "" {
+    return errors.New("Missing key for update")
+  }
+
+  id, err := strconv.ParseInt(it.ID, 16, 64)
   if err != nil {
     return err
   }
