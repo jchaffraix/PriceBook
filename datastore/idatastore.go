@@ -24,6 +24,15 @@ func (e *InvalidItemError) Error() string {
   return e.validationError
 }
 
+// Error raised when an Item is not found in the datastore.
+type NotFoundError struct {
+  key string
+}
+
+func (e *NotFoundError) Error() string {
+  return e.key + " was not found"
+}
+
 var ds IDataStore
 
 func Init(isInMemory bool) {

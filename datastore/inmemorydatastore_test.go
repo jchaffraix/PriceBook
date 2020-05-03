@@ -33,3 +33,27 @@ func TestAdd(t *testing.T) {
     })
   }
 }
+
+func TestRemoveValidElement(t *testing.T) {
+  ds := NewInMemoryDataStore()
+  key, e := ds.Add(Item{"Carrot", 1, "lb"});
+  if e != nil {
+    t.Fatalf("Unexpected error when inserting valid item")
+  }
+  e = ds.Delete(key)
+  if e != nil {
+    t.Fatalf("Unexpected error when removing valid key")
+  }
+  _, found := ds.m[key]
+  if found {
+    t.Fatalf("Key was not removed despite no error returned")
+  }
+}
+
+func TestRemoveInvalidKey(t *testing.T) {
+  ds := NewInMemoryDataStore()
+  e := ds.Delete("inexistent")
+  if e == nil {
+    t.Fatalf("Did not get an error when removing an inexistent key")
+  }
+}

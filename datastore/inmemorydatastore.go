@@ -38,7 +38,12 @@ func (ds *InMemoryDataStore) Add(it Item) (string, error) {
 }
 
 func (ds *InMemoryDataStore) Delete(key string) error {
-  return errors.New("Not implemented")
+  _, found := ds.m[key]
+  if found {
+    delete(ds.m, key)
+    return nil
+  }
+  return &NotFoundError{key}
 }
 
 func (ds *InMemoryDataStore) Update(key string, it Item) error {
