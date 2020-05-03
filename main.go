@@ -75,6 +75,32 @@ func (h deleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   fmt.Fprintf(w, "Deleted")
 }
 
+type updateHandler struct {
+  ds datastore.IDataStore
+}
+
+type UpdatePayload struct {
+  ID string `json:"id"`
+  It datastore.Item `json:"item"`
+}
+
+func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+  // TODO: I should do user validation using
+  // https://cloud.google.com/go/getting-started/authenticate-users-with-iap
+  var payload UpdatePayload
+  err := json.NewDecoder(r.Body).Decode(&payload)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
+  err = h.ds.Update(payload.ID, payload.It)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
+  fmt.Fprintf(w, "Updated")
+}
+
 func main() {
   var inMemoryPtr = flag.Bool("inmemory", false, "Toggle the datastore to in-memory for local testing")
   flag.Parse()
@@ -89,6 +115,7 @@ func main() {
   http.Handle("/", defaultHandler{})
   http.Handle("/add", addHandler{datastore.Get()})
   http.Handle("/delete", deleteHandler{datastore.Get()})
+  http.Handle("/update", updateHandler{datastore.Get()})
 
   if err := http.ListenAndServe(":"+port, nil); err != nil {
     log.Fatal(err)
