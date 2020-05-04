@@ -36,8 +36,10 @@ func TestAddInMemory(t *testing.T) {
         if len(items) != 1 {
           t.Fatalf("Wrong number of items after insertion: %+v", items)
         }
-        if items[0] != tc.it {
-          t.Fatalf("Wrong item stored, inserted=%+v, got=%+v", tc.it, items[0])
+        expectedItem := tc.it
+        expectedItem.ID = key
+        if items[0] != expectedItem {
+          t.Fatalf("Wrong item stored, inserted=%+v, got=%+v", expectedItem, items[0])
         }
       }
     })

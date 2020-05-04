@@ -27,6 +27,18 @@ func randomKey() string {
   return string(b)
 }
 
+func buildKey(userID, key string) string {
+  return userID + "." + key
+}
+
+func splitKey(fullKey string) (string, string) {
+  split := strings.Split(fullKey, ".")
+  if len(split) != 2 {
+    return "", ""
+  }
+  return split[0], split[1]
+}
+
 func (ds *InMemoryDataStore) Add(userID string, it Item) (string, error) {
   if it.ID != "" {
     return "", &InvalidItemError{"Unexpected ID in Add"}
@@ -37,13 +49,13 @@ func (ds *InMemoryDataStore) Add(userID string, it Item) (string, error) {
   }
 
   key := randomKey()
-  fullKey := userID + key
+  fullKey := buildKey(userID, key)
   ds.m[fullKey] = it
   return key, nil
 }
 
 func (ds *InMemoryDataStore) Delete(userID, key string) error {
-  fullKey := userID + key
+  fullKey := buildKey(userID, key)
   _, found := ds.m[fullKey]
   if found {
     delete(ds.m, fullKey)
@@ -57,7 +69,7 @@ func (ds *InMemoryDataStore) Update(userID string, it Item) error {
     return errors.New("Missing key for update")
   }
 
-  fullKey := userID + it.ID
+  fullKey := buildKey(userID, it.ID)
   _, found := ds.m[fullKey]
   if found {
     ds.m[fullKey] = it
@@ -69,7 +81,9 @@ func (ds *InMemoryDataStore) Update(userID string, it Item) error {
 func (ds *InMemoryDataStore) Get(userID string) []Item {
   var res []Item
   for key, it := range (ds.m) {
-    if strings.HasPrefix(key, userID) {
+    keyUserID, keyID := splitKey(key)
+    if keyUserID == userID {
+      it.ID = keyID
       res = append(res, it)
     }
   }
