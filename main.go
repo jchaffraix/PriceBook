@@ -95,6 +95,7 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     return
   }
   userID := h.id.GetUserID(r)
+  log.Printf("Preparing to update object %+v for userID %v", item, userID)
   err = h.ds.Update(userID, item)
   if err != nil {
     http.Error(w, err.Error(), http.StatusBadRequest)
