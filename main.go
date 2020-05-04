@@ -88,7 +88,7 @@ type updateHandler struct {
 func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   // TODO: I should do user validation using
   // https://cloud.google.com/go/getting-started/authenticate-users-with-iap
-  var payload Item
+  var item datastore.Item
   err := json.NewDecoder(r.Body).Decode(&item)
   if err != nil {
     http.Error(w, err.Error(), http.StatusBadRequest)
@@ -101,6 +101,23 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     return
   }
   fmt.Fprintf(w, "Updated")
+}
+
+type getHandler struct {
+  ds datastore.IDataStore
+  id identity.IIdentity
+}
+
+func (h getHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+  userID := h.id.GetUserID(r)
+  items := h.ds.Get(userID)
+  res, err := json.Marshal(items)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+  w.Header().Add("Content-Type", "application/json")
+  w.Write(res)
 }
 
 func main() {
@@ -120,6 +137,7 @@ func main() {
   http.Handle("/add", addHandler{datastore.Get(), identity.Get()})
   http.Handle("/delete", deleteHandler{datastore.Get(), identity.Get()})
   http.Handle("/update", updateHandler{datastore.Get(), identity.Get()})
+  http.Handle("/get", getHandler{datastore.Get(), identity.Get()})
 
   if err := http.ListenAndServe(":"+port, nil); err != nil {
     log.Fatal(err)
