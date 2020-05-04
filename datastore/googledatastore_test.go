@@ -116,6 +116,33 @@ func TestUpdateInvalidKeyGoogle(t *testing.T) {
   }
 }
 
+func TestUpdateInvalidElementGoogle(t *testing.T) {
+  ds := NewGoogleDataStore()
+  originalItem := Item{"", "Carrot", 1, "lb"}
+  key, e := ds.Add(GOOGLE_USER_ID, originalItem);
+  if e != nil {
+    t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
+  }
+  defer cleanUp(t, ds, key)
+
+  // Missing name.
+  newItem := Item{key, "", 2, "lb"};
+  e = ds.Update(GOOGLE_USER_ID, newItem)
+  if e == nil {
+    t.Fatalf("Expected error when updating with an invalid item but didn't get it!")
+  }
+
+  items := ds.Get(GOOGLE_USER_ID)
+  if len(items) != 1 {
+    t.Fatalf("Unexpected item count: %+v", items)
+  }
+  originalItem.ID = key
+  if items[0] != originalItem {
+    t.Fatalf("Unexpected difference in storage. Expected %+v, got: %+v", originalItem, items[0])
+  }
+}
+
+
 func TestDoNotTouchWrongUserGoogle(t *testing.T) {
   ds := NewGoogleDataStore()
   key, e := ds.Add(GOOGLE_USER_ID, Item{"", "Carrot", 1, "lb"});

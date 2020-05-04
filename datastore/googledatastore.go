@@ -45,16 +45,11 @@ func decodeKeyId(key string) (int64, error) {
 }
 
 func (ds *GoogleDataStore) Add(userID string, it Item) (string, error) {
-  // TODO: Share the validation code with the InMemoryDataStore.
-  if it.ID != "" {
-    return "", &InvalidItemError{"Unexpected ID in Add"}
+  err := ValidateItemWithoutKey(it)
+  if err != nil {
+    return "", err
   }
 
-  if it.Name == "" {
-    return "", &InvalidItemError{"Missing 'name'"}
-  }
-
-  // TODO: Pass the user instead of nil to scope their request.
   ancestorKey := datastore.NameKey(USER_TABLE, userID, nil)
   newKey := datastore.IncompleteKey(ITEM_TABLE, ancestorKey)
   key, err := ds.client.Put(ds.ctx, newKey, &it)
@@ -84,6 +79,11 @@ func (ds *GoogleDataStore) Delete(userID, key string) error {
 }
 
 func (ds *GoogleDataStore) Update(userID string, it Item) error {
+  err := ValidateItemWithKey(it)
+  if err != nil {
+    return err
+  }
+
   keyID, err := decodeKeyId(it.ID)
   if err != nil {
     return err
@@ -115,7 +115,15 @@ func (ds *GoogleDataStore) Get(userID string) []Item {
     if err != nil {
       log.Fatalf("Error reading the data: %+v", err)
     }
-    log.Printf("Key = %+v", key)
+
+    // Sanity check.
+    // If we fail, we just silently skip the item.
+    err = ValidateItemWithoutKey(item)
+    if err != nil {
+      log.Printf("Item in storage doesn't pass validation: %+v", item)
+      continue
+    }
+
     // Populate the key as it's not automatically done.
     item.ID = encodeKeyId(key)
     res = append(res, item)

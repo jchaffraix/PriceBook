@@ -94,6 +94,31 @@ func TestUpdateValidElementInMemory(t *testing.T) {
   }
 }
 
+func TestUpdateInvalidElementInMemory(t *testing.T) {
+  ds := NewInMemoryDataStore()
+  originalItem := Item{"", "Carrot", 1, "lb"}
+  key, e := ds.Add(INMEMORY_USER_ID, originalItem);
+  if e != nil {
+    t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
+  }
+
+  // Missing name.
+  newItem := Item{key, "", 2, "lb"};
+  e = ds.Update(INMEMORY_USER_ID, newItem)
+  if e == nil {
+    t.Fatalf("Expected error when updating with an invalid item but didn't get it!")
+  }
+
+  items := ds.Get(INMEMORY_USER_ID)
+  if len(items) != 1 {
+    t.Fatalf("Unexpected item count: %+v", items)
+  }
+  originalItem.ID = key
+  if items[0] != originalItem {
+    t.Fatalf("Unexpected difference in storage. Expected %+v, got: %+v", originalItem, items[0])
+  }
+}
+
 func TestUpdateInvalidKeyInMemory(t *testing.T) {
   ds := NewInMemoryDataStore()
   e := ds.Update(INMEMORY_USER_ID, Item{"inexistent", "Carrot", 1, "lb"});

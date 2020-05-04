@@ -1,7 +1,7 @@
 package datastore
 
 import (
-  "errors"
+  "log"
   "math/rand"
   "strings"
 )
@@ -40,12 +40,9 @@ func splitKey(fullKey string) (string, string) {
 }
 
 func (ds *InMemoryDataStore) Add(userID string, it Item) (string, error) {
-  if it.ID != "" {
-    return "", &InvalidItemError{"Unexpected ID in Add"}
-  }
-
-  if it.Name == "" {
-    return "", &InvalidItemError{"Missing 'name'"}
+  err := ValidateItemWithoutKey(it)
+  if err != nil {
+    return "", err
   }
 
   key := randomKey()
@@ -64,15 +61,18 @@ func (ds *InMemoryDataStore) Delete(userID, key string) error {
   return &NotFoundError{fullKey}
 }
 
-func (ds *InMemoryDataStore) Update(userID string, it Item) error {
-  if it.ID == "" {
-    return errors.New("Missing key for update")
+func (ds *InMemoryDataStore) Update(userID string, item Item) error {
+  err := ValidateItemWithKey(item)
+  if err != nil {
+    return err
   }
 
-  fullKey := buildKey(userID, it.ID)
+  fullKey := buildKey(userID, item.ID)
   _, found := ds.m[fullKey]
   if found {
-    ds.m[fullKey] = it
+    // Remove the ID field to match the behavior of the GoogleDataStore.
+    item.ID = ""
+    ds.m[fullKey] = item
     return nil
   }
   return &NotFoundError{fullKey}
@@ -83,6 +83,11 @@ func (ds *InMemoryDataStore) Get(userID string) []Item {
   for key, it := range (ds.m) {
     keyUserID, keyID := splitKey(key)
     if keyUserID == userID {
+      err := ValidateItemWithoutKey(it)
+      if err != nil {
+        log.Printf("Item in storage doens't pass validation: %+v", it)
+        continue
+      }
       it.ID = keyID
       res = append(res, it)
     }
