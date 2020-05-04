@@ -36,6 +36,7 @@ func TestAddGoogle(t *testing.T) {
           t.Fatalf("Expected error but didn't get one")
         }
       } else {
+        defer cleanUp(t, ds, key)
         if err != nil {
           t.Fatalf("Unexpected error %v", err)
         }
@@ -46,10 +47,13 @@ func TestAddGoogle(t *testing.T) {
         if len(items) != 1 {
           t.Fatalf("Wrong number of items after insertion: %+v", items)
         }
-        if items[0] != tc.it {
-          t.Fatalf("Wrong item stored, inserted=%+v, got=%+v", tc.it, items[0])
+
+        // Add the key to the item in Get.
+        expectedItem := tc.it
+        expectedItem.ID = key
+        if items[0] != expectedItem {
+          t.Fatalf("Wrong item stored, expected=%+v, got=%+v", expectedItem, items[0])
         }
-        cleanUp(t, ds, key)
       }
     })
   }
@@ -85,6 +89,7 @@ func TestUpdateValidElementGoogle(t *testing.T) {
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
+  defer cleanUp(t, ds, key)
 
   newItem := Item{key, "Carrot 2", 2, "lb"};
   e = ds.Update(GOOGLE_USER_ID, newItem)
@@ -101,7 +106,6 @@ func TestUpdateValidElementGoogle(t *testing.T) {
   if items[0] != newItem {
     t.Fatalf("Item was not updated")
   }
-  cleanUp(t, ds, key)
 }
 
 func TestUpdateInvalidKeyGoogle(t *testing.T) {
@@ -118,6 +122,7 @@ func TestDoNotTouchWrongUserGoogle(t *testing.T) {
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
+  defer cleanUp(t, ds, key)
 
   newItem := Item{key, "Carrot 2", 2, "lb"};
   e = ds.Update("not_user_1", newItem)
@@ -129,6 +134,4 @@ func TestDoNotTouchWrongUserGoogle(t *testing.T) {
   if e == nil {
     t.Fatalf("Should not have deleted another user's key")
   }
-
-  cleanUp(t, ds, key)
 }

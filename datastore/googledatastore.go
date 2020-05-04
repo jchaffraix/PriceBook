@@ -31,6 +31,19 @@ func NewGoogleDataStore() *GoogleDataStore {
   return &GoogleDataStore{ctx, client}
 }
 
+func encodeKeyId(key *datastore.Key) string {
+  // TODO: Should I use Key.GobEncode/GobDecode?
+  return strconv.FormatInt(key.ID, 16)
+}
+
+func decodeKeyId(key string) (int64, error) {
+  if key == "" {
+    return 0, errors.New("Missing key for update")
+  }
+
+  return strconv.ParseInt(key, 16, 64)
+}
+
 func (ds *GoogleDataStore) Add(userID string, it Item) (string, error) {
   // TODO: Share the validation code with the InMemoryDataStore.
   if it.ID != "" {
@@ -49,18 +62,17 @@ func (ds *GoogleDataStore) Add(userID string, it Item) (string, error) {
     return "", err
   }
 
-  // TODO: Should I use Key.GobEncode/GobDecode?
-  return strconv.FormatInt(key.ID, 16), nil
+  return encodeKeyId(key), nil
 }
 
 func (ds *GoogleDataStore) Delete(userID, key string) error {
-  id, err := strconv.ParseInt(key, 16, 64)
+  keyID, err := decodeKeyId(key)
   if err != nil {
     return err
   }
 
   ancestorKey := datastore.NameKey(USER_TABLE, userID, nil)
-  ds_key := datastore.IDKey(ITEM_TABLE, id, ancestorKey)
+  ds_key := datastore.IDKey(ITEM_TABLE, keyID, ancestorKey)
 
   // Load the key first to make sure it exists.
   var it Item
@@ -72,24 +84,20 @@ func (ds *GoogleDataStore) Delete(userID, key string) error {
 }
 
 func (ds *GoogleDataStore) Update(userID string, it Item) error {
-  if it.ID == "" {
-    return errors.New("Missing key for update")
-  }
-
-  id, err := strconv.ParseInt(it.ID, 16, 64)
+  keyID, err := decodeKeyId(it.ID)
   if err != nil {
     return err
   }
   ancestorKey := datastore.NameKey(USER_TABLE, userID, nil)
-  ds_key := datastore.IDKey(ITEM_TABLE, id, ancestorKey)
+  dsKey := datastore.IDKey(ITEM_TABLE, keyID, ancestorKey)
 
   // Load the key first to make sure it exists.
   var existing Item
-  if err := ds.client.Get(ds.ctx, ds_key, &existing); err != nil {
+  if err := ds.client.Get(ds.ctx, dsKey, &existing); err != nil {
     return err
   }
 
-  _, err = ds.client.Put(ds.ctx, ds_key, &it)
+  _, err = ds.client.Put(ds.ctx, dsKey, &it)
   return err
 }
 
@@ -101,13 +109,15 @@ func (ds *GoogleDataStore) Get(userID string) []Item {
   for {
     var item Item
     key, err := it.Next(&item)
-    log.Printf("Key = %+v", key)
     if err == iterator.Done {
       break;
     }
     if err != nil {
       log.Fatalf("Error reading the data: %+v", err)
     }
+    log.Printf("Key = %+v", key)
+    // Populate the key as it's not automatically done.
+    item.ID = encodeKeyId(key)
     res = append(res, item)
   }
   return res
