@@ -4,6 +4,11 @@ func validateItemFields(item Item) error {
   if item.Name == "" {
     return &InvalidItemError{"Missing 'name'"}
   }
+
+  if len(item.Purchases) == 0 {
+    return &InvalidItemError{"Missing 'purchases'"}
+  }
+
   return nil
 }
 

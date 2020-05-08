@@ -1,5 +1,15 @@
 package datastore
 
+import "time"
+
+// PurchaseInfo consistute one point in
+// a time series of purchases.
+type PurchaseInfo struct {
+  Time time.Time
+  Store string
+  Price float32
+}
+
 type Item struct {
   // This is the hexadecimal representation of the Key.ID.
   // It is not stored but is sometimes returned to our API.
@@ -9,9 +19,7 @@ type Item struct {
   Quantity float32 `datastore:",noindex"`
   Unit string `datastore:",noindex"`
 
-  // TODO: Need to add store
-  // TODO: Which format for the date.
-  // TODO: Add the timeseries.
+  Purchases []PurchaseInfo
 }
 
 type IDataStore interface {
