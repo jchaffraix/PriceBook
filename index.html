@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Price book app</title>
+<script
+  src="https://code.jquery.com/jquery-3.1.1.min.js"
+    integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+<script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+<script id="main-page-template" type="text/x-handlebars-template">
+<div class="ui segment">
+
+<table class="ui selectable unstackable fixed table">
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>Price</th>
+      <th>Place</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+  <tbody>
+{{#each products}}
+  <tr>
+    <td>
+      {{name}} {{#if brand}}({{brand}}){{/if}}
+    </td>
+    {{generate_best_price this}}
+  </tr>
+{{/each}}
+  </tbody>
+</table>
+</script>
+<script id="item-modal-template" type="text/x-handlebars-template">
+
+</script>
+<script>
+  function priceText(escapedCurrency, escapedPrice) {
+    // TODO: Handle other currencies (euro is after the price).
+    return escapedCurrency + escapedPrice;
+  }
+
+  Handlebars.registerHelper("generate_best_price", function(item) {
+    // Find the best price.
+    bestPurchase = item.purchases[0]
+    item.purchases.forEach(function(purchase) {
+      if (bestPurchase.price > purchase.price) {
+        bestPurchase = purchase;
+      }
+    });
+
+    var escapedCurrency = Handlebars.escapeExpression(bestPurchase.currency);
+    var escapedPrice = Handlebars.escapeExpression(bestPurchase.price);
+    var escapedPlace = Handlebars.escapeExpression(bestPurchase.place);
+    var escapedDate = Handlebars.escapeExpression(bestPurchase.date);
+    return new Handlebars.SafeString("<td>" + priceText(escapedCurrency, escapedPrice) + "</td><td>" + escapedPlace + "</td><td>" + escapedDate + "</td>");
+  });
+
+  window.addEventListener("load", function() {
+    var template = Handlebars.compile($("#main-page-template").html());
+    // TODO: The currency should be common?
+    // TODO: This doesn't match our data model (nor does it match what we need).
+    // TODO: Add some helper to compute the min/date of min.
+    document.body.innerHTML = template({ "placeholder": "Search product", "products": [
+      { "id": "1234",
+        "name": "Pasta",
+        "brand": "Barilla",
+        "quantity": "16",
+        "unit": "oz",
+        "purchases": [
+          {
+            "price": 1.25,
+            "currency": "$",
+            "date": "2020-03-01 18:20",
+            "place": "Sprouts"
+          },
+          {
+            "price": 1.00,
+            "currency": "$",
+            "date": "2020-01-01 20:22",
+            "place": "Lucky's"
+          }
+        ]
+      },
+      { "id": "5678",
+        "name": "Orange",
+        "currency": "$",
+        "quantity": "1",
+        "unit": "lb",
+        "purchases": [
+          {
+            "price": 3.44,
+            "currency": "$",
+            "date": "2020-04-01 15:15",
+            "place": "Whole Foods"
+          }
+        ]
+      }
+		]});
+
+		// Install Semantic UI JS.
+		$(".ui.dropdown").dropdown();
+  });
+</script>
+</style>
+</style>
+<body>Loading...</body>
