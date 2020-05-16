@@ -24,7 +24,7 @@
   </thead>
   <tbody>
 {{#each products}}
-  <tr>
+  <tr item-index={{@index}}>
     <td>
       {{name}} {{#if brand}}({{brand}}){{/if}}
     </td>
@@ -35,10 +35,84 @@
 </table>
 </script>
 <script id="item-modal-template" type="text/x-handlebars-template">
-
+<div class="header">
+  Edit product
+</div>
+<div class="content">
+  <div class="ui labeled input">
+    <div class="ui label">
+        Name: 
+    </div>
+    <input type="text" placeholder={{name}}>
+  </div>
+  <br>
+  <div class="ui labeled input">
+    <div class="ui label">
+        Brand:
+    </div>
+    <input type="text" placeholder={{brand}}>
+  </div>
+  <br>
+  <div class="ui labeled input">
+    <div class="ui label">
+        Quantity: 
+    </div>
+    <input type="number" placeholder={{quantity}}>
+    <select class="ui dropdown">{{generate_options this}}</select>
+  </div>
+</div>
+<div class="actions">
+  <div class="ui red basic cancel button">
+    <i class="remove icon"></i>
+    Cancel
+  </div>
+  <div class="ui green ok inverted button">
+  <i class="checkmark icon"></i>
+  Save
+  </div>
+</div>
 </script>
 <script>
-  function priceText(escapedCurrency, escapedPrice) {
+  // TODO: Dynamically load this.
+  // TODO: Should the currency be common in our model? Driven by pref like unit?
+  var itemList = [
+    { "id": "1234",
+      "name": "Pasta",
+      "brand": "Barilla",
+      "quantity": "16",
+      "unit": "oz",
+      "purchases": [
+        {
+          "price": 1.25,
+          "currency": "$",
+          "date": "2020-03-01 18:20",
+          "place": "Sprouts"
+        },
+        {
+          "price": 1.00,
+          "currency": "$",
+          "date": "2020-01-01 20:22",
+          "place": "Lucky's"
+        }
+      ]
+    },
+    { "id": "5678",
+      "name": "Orange",
+      "currency": "$",
+      "quantity": "1",
+      "unit": "lb",
+      "purchases": [
+        {
+          "price": 3.44,
+          "currency": "$",
+          "date": "2020-04-01 15:15",
+          "place": "Whole Foods"
+        }
+      ]
+    }
+  ];
+    
+    function priceText(escapedCurrency, escapedPrice) {
     // TODO: Handle other currencies (euro is after the price).
     return escapedCurrency + escapedPrice;
   }
@@ -59,52 +133,40 @@
     return new Handlebars.SafeString("<td>" + priceText(escapedCurrency, escapedPrice) + "</td><td>" + escapedPlace + "</td><td>" + escapedDate + "</td>");
   });
 
+  Handlebars.registerHelper("generate_options", function(item) {
+    var options = [];
+    // TODO: Load the options.
+    for (const option of ["lb", "oz", "unit"]) {
+      const selected = item.unit === option;
+      var optionStr = "<option ";
+      optionStr += selected ? "selected " : "";
+      optionStr += "value=\"" + option + "\">" + Handlebars.escapeExpression(option) + "</option>";
+      options.push(optionStr);
+    }
+    return new Handlebars.SafeString(options.join(""));
+  });
+
   window.addEventListener("load", function() {
     var template = Handlebars.compile($("#main-page-template").html());
-    // TODO: The currency should be common?
-    // TODO: This doesn't match our data model (nor does it match what we need).
-    // TODO: Add some helper to compute the min/date of min.
-    document.body.innerHTML = template({ "placeholder": "Search product", "products": [
-      { "id": "1234",
-        "name": "Pasta",
-        "brand": "Barilla",
-        "quantity": "16",
-        "unit": "oz",
-        "purchases": [
-          {
-            "price": 1.25,
-            "currency": "$",
-            "date": "2020-03-01 18:20",
-            "place": "Sprouts"
-          },
-          {
-            "price": 1.00,
-            "currency": "$",
-            "date": "2020-01-01 20:22",
-            "place": "Lucky's"
-          }
-        ]
-      },
-      { "id": "5678",
-        "name": "Orange",
-        "currency": "$",
-        "quantity": "1",
-        "unit": "lb",
-        "purchases": [
-          {
-            "price": 3.44,
-            "currency": "$",
-            "date": "2020-04-01 15:15",
-            "place": "Whole Foods"
-          }
-        ]
-      }
-		]});
+    $("#list").html(template({ "placeholder": "Search product", "products": itemList}));
+
+    // Install the event listeners.
+    $("tr").click(function(e) {
+      var itemIndex = e.target.parentElement.getAttribute("item-index");
+      var modalTemplate = Handlebars.compile($("#item-modal-template").html());
+      $("#modal").html(modalTemplate(itemList[itemIndex]));
+      $("#modal").modal('show');
+    });
 
 		// Install Semantic UI JS.
-		$(".ui.dropdown").dropdown();
   });
 </script>
+<style>
+.ui.label {
+  width: 10em;
+}
 </style>
-</style>
-<body>Loading...</body>
+<body>
+<div id="list"></div>
+<div id="modal" class="ui modal"></div>
+</body>
