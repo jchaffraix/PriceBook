@@ -13,7 +13,7 @@
 <script id="main-page-template" type="text/x-handlebars-template">
 <div class="ui segment">
 
-<table class="ui selectable unstackable fixed table">
+<table class="ui selectable unstackable fixed table" id="main">
   <thead>
     <tr>
       <th>Product</th>
@@ -43,30 +43,65 @@
     <div class="ui label">
         Name: 
     </div>
-    <input type="text" placeholder={{name}}>
+    <input type="text" placeholder="{{name}}" id="name">
   </div>
   <br>
   <div class="ui labeled input">
     <div class="ui label">
         Brand:
     </div>
-    <input type="text" placeholder={{brand}}>
+    <input type="text" placeholder="{{brand}}" id="brand">
   </div>
   <br>
   <div class="ui labeled input">
     <div class="ui label">
         Quantity: 
     </div>
-    <input type="number" placeholder={{quantity}}>
-    <select class="ui dropdown">{{generate_options this}}</select>
+    <input type="number" placeholder="{{quantity}}" id="quantity">
+    <select class="ui dropdown" id="unit">{{generate_options this}}</select>
   </div>
+  <table class="ui selectable unstackable fixed table">
+  <thead>
+    <tr>
+      <th>Price</th>
+      <th>Date</th>
+      <th>Place</th>
+      <th class="empty"><i class="icon plus circle" id="addPurchase"></i></th>
+    </tr>
+  </thead>
+  <tbody id="purchases">
+{{#each purchases}}
+    <tr item-index={{@index}}>
+      <td>
+        <div class="ui right labeled input">
+          <label for="amount" class="ui label currency">{{currency}}</label>
+          <input type="text" placeholder="{{price}}" id="amount-{{@index}}">
+        </div>
+      </td>
+      <td>
+        <div class="ui input">
+          <input type="date" value="{{date}}" id="date-{{@index}}">
+        </div>
+      </td>
+      <td>
+        <div class="ui input">
+          <input type="text" placeholder="{{place}}" id="place-{{@index}}">
+        </div>
+      </td>
+      <td>
+        <i class="icon trash alternate outline deletePurchase"></div>
+      </td>
+    </tr>
+{{/each}}
+  </tbody>
+  </table>
 </div>
 <div class="actions">
-  <div class="ui red basic cancel button">
+  <div class="ui red basic cancel button" id="discard">
     <i class="remove icon"></i>
     Cancel
   </div>
-  <div class="ui green ok inverted button">
+  <div class="ui green ok inverted button" id="save">
   <i class="checkmark icon"></i>
   Save
   </div>
@@ -75,7 +110,7 @@
 <script>
   // TODO: Dynamically load this.
   // TODO: Should the currency be common in our model? Driven by pref like unit?
-  var itemList = [
+  var itemsList = [
     { "id": "1234",
       "name": "Pasta",
       "brand": "Barilla",
@@ -85,13 +120,13 @@
         {
           "price": 1.25,
           "currency": "$",
-          "date": "2020-03-01 18:20",
+          "date": "2020-03-01",
           "place": "Sprouts"
         },
         {
           "price": 1.00,
           "currency": "$",
-          "date": "2020-01-01 20:22",
+          "date": "2020-01-01",
           "place": "Lucky's"
         }
       ]
@@ -105,7 +140,7 @@
         {
           "price": 3.44,
           "currency": "$",
-          "date": "2020-04-01 15:15",
+          "date": "2020-04-01",
           "place": "Whole Foods"
         }
       ]
@@ -146,24 +181,122 @@
     return new Handlebars.SafeString(options.join(""));
   });
 
-  window.addEventListener("load", function() {
+  function buildItemListUI() {
     var template = Handlebars.compile($("#main-page-template").html());
-    $("#list").html(template({ "placeholder": "Search product", "products": itemList}));
+    $("#list").html(template({ "placeholder": "Search product", "products": itemsList}));
+  }
 
-    // Install the event listeners.
-    $("tr").click(function(e) {
-      var itemIndex = e.target.parentElement.getAttribute("item-index");
-      var modalTemplate = Handlebars.compile($("#item-modal-template").html());
-      $("#modal").html(modalTemplate(itemList[itemIndex]));
+  // Note: This is a copy of the existing item.
+  // This allows for edition by the user without overwriting
+  // the existing item so we can safely cancel.
+  var itemBeingEdited = null;
+  var itemBeingEditedIndex = null;
+
+  function buildItemBeingEditedUI() {
+    var modalTemplate = Handlebars.compile($("#item-modal-template").html());
+    $("#modal").html(modalTemplate(itemBeingEdited));
+  }
+
+  function ISOTodayDate() {
+    d = new Date().toISOString();
+    endOfDate = d.indexOf("T");
+    if (endOfDate === -1) {
+      throw "invalid format";
+    }
+
+    return d.substring(0, endOfDate);
+  }
+
+  function saveEditsFromDOM() {
+    // TODO: Validate the names, for now we prevent XSS through Handlebars.
+    var updatedName = $('#name')[0].value
+    if (updatedName !== "") {
+      itemBeingEdited['name']= Handlebars.escapeExpression(updatedName);
+    }
+    var updatedBrand = $('#brand')[0].value
+    if (updatedBrand !== "") {
+      // TODO: Find a good solution to clearing brand.
+      if (updatedBrand === " ") {
+        updatedBrand = "";
+      }
+      itemBeingEdited['brand']= Handlebars.escapeExpression(updatedBrand);
+    }
+
+    var updatedQuantity = $('#quantity')[0].value
+    if (updatedQuantity !== "") {
+      // TODO: Validate that it's an int!
+      itemBeingEdited['quantity']= Handlebars.escapeExpression(updatedQuantity);
+    }
+    var selectedOptions = document.getElementById("unit").selectedOptions;
+    if (selectedOptions.length != 1) {
+      throw "bad selected state, len = " + selectedOptions.length;
+    }
+
+    itemBeingEdited['unit']= Handlebars.escapeExpression(selectedOptions[0].value);
+
+    for (var i = 0; i < itemBeingEdited.purchases.length; ++i) {
+      var updatedAmount = $("#amount-" + i)[0].value;
+      if (updatedAmount !== "") {
+        itemBeingEdited.purchases[i]["price"] = updatedAmount;
+      }
+
+      var updatedDate = $("#date-" + i)[0].value;
+      if (updatedDate !== "") {
+        itemBeingEdited.purchases[i]["date"] = updatedDate;
+      }
+
+      var updatedPlace = $("#place-" + i)[0].value;
+      if (updatedPlace !== "") {
+        itemBeingEdited.purchases[i]["place"] = updatedPlace;
+      }
+    }
+  }
+
+  window.addEventListener("load", function() {
+    buildItemListUI();
+
+    // Install the event listeners on main UI.
+    $("body").on("click", "#main tr[item-index]", function(e) {
+      itemBeingEditedIndex = e.target.parentElement.getAttribute("item-index");
+      itemBeingEdited = jQuery.extend(true, {}, itemsList[itemBeingEditedIndex]);
+      buildItemBeingEditedUI();
       $("#modal").modal('show');
     });
 
-		// Install Semantic UI JS.
+    $("body").on("click", "#addPurchase", function(e) {
+      e.preventDefault();
+      saveEditsFromDOM();
+      itemBeingEdited.purchases.push({"currency": "$", "date": ISOTodayDate()});
+      buildItemBeingEditedUI();
+    });
+
+    $("body").on("click", ".deletePurchase", function(e) {
+      e.preventDefault();
+      saveEditsFromDOM();
+      var index = e.currentTarget.parentElement.parentElement.getAttribute("item-index");
+      itemBeingEdited.purchases.splice(index, 1);
+      buildItemBeingEditedUI();
+    });
+
+    $("body").on("click", "#save", function (e) {
+      e.preventDefault();
+      saveEditsFromDOM();
+      itemsList[itemBeingEditedIndex] = itemBeingEdited;
+      itemBeingEdited = null;
+      itemBeingEditedIndex = null;
+
+      // TODO: We should check that there was a diff instead of unconditionally blowing up the DOM.
+      buildItemListUI();
+    });
   });
 </script>
 <style>
-.ui.label {
+.ui.label:not(.currency) {
   width: 10em;
+}
+
+.empty {
+  width: 3em;
 }
 </style>
 <body>
