@@ -11,7 +11,12 @@
 <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 <script id="main-page-template" type="text/x-handlebars-template">
-<div class="ui segment">
+<div class="ui borderless main menu" id="searchMenu">
+  <div class="ui fluid icon input" id="searchBar">
+    <input type="text" placeholder="Search products" id="search">
+    <i class="search icon"></i>
+  </div>
+</div>
 
 <table class="ui selectable unstackable fixed table" id="main">
   <thead>
@@ -20,6 +25,7 @@
       <th>Price</th>
       <th>Place</th>
       <th>Date</th>
+      <th class="empty"><i class="icon plus circle" id="addItem"></i></th>
     </tr>
   </thead>
   <tbody>
@@ -29,6 +35,9 @@
       {{name}} {{#if brand}}({{brand}}){{/if}}
     </td>
     {{generate_best_price this}}
+    <td>
+      <i class="icon trash alternate outline deleteItem"></div>
+    </td>
   </tr>
 {{/each}}
   </tbody>
@@ -111,7 +120,7 @@
   // TODO: Dynamically load this.
   // TODO: Should the currency be common in our model? Driven by pref like unit?
   var itemsList = [
-    { "id": "1234",
+    { "id": "1",
       "name": "Pasta",
       "brand": "Barilla",
       "quantity": "16",
@@ -131,7 +140,7 @@
         }
       ]
     },
-    { "id": "5678",
+    { "id": "5",
       "name": "Orange",
       "currency": "$",
       "quantity": "1",
@@ -144,7 +153,145 @@
           "place": "Whole Foods"
         }
       ]
-    }
+    },
+    { "id": "9",
+      "name": "Pasta",
+      "brand": "Foobar",
+      "quantity": "16",
+      "unit": "oz",
+      "purchases": [
+        {
+          "price": 2.25,
+          "currency": "$",
+          "date": "2020-03-01",
+          "place": "Sprouts"
+        },
+        {
+          "price": 2.00,
+          "currency": "$",
+          "date": "2020-01-01",
+          "place": "Lucky's"
+        }
+      ]
+    },
+    { "id": "12",
+      "name": "Bread",
+      "brand": "David Killer",
+      "quantity": "32",
+      "unit": "oz",
+      "purchases": [
+        {
+          "price": 4.25,
+          "currency": "$",
+          "date": "2020-03-01",
+          "place": "Sprouts"
+        },
+      ]
+    },
+    { "id": "1234",
+      "name": "Pasta",
+      "brand": "Penne Barilla",
+      "quantity": "16",
+      "unit": "oz",
+      "purchases": [
+        {
+          "price": 1.25,
+          "currency": "$",
+          "date": "2020-03-01",
+          "place": "Sprouts"
+        },
+        {
+          "price": 1.00,
+          "currency": "$",
+          "date": "2020-01-01",
+          "place": "Lucky's"
+        }
+      ]
+    },
+    { "id": "1234",
+      "name": "Potato",
+      "brand": "Russet",
+      "quantity": "1",
+      "unit": "lb",
+      "purchases": [
+        {
+          "price": 1.29,
+          "currency": "$",
+          "date": "2020-01-01",
+          "place": "Lucky's"
+        }
+      ]
+    },
+    { "id": "5555",
+      "name": "Avocado",
+      "brand": "",
+      "quantity": "1",
+      "unit": "unit",
+      "purchases": [
+        {
+          "price": 1,
+          "currency": "$",
+          "date": "2020-05-01",
+          "place": "Lucky's"
+        }
+      ]
+    },
+    { "id": "55",
+      "name": "Avocado",
+      "brand": "Organic",
+      "quantity": "1",
+      "unit": "unit",
+      "purchases": [
+        {
+          "price": 2.5,
+          "currency": "$",
+          "date": "2020-05-01",
+          "place": "Lucky's"
+        }
+      ]
+    },
+    { "id": "678",
+      "name": "Salad",
+      "brand": "Red Leaf",
+      "quantity": "1",
+      "unit": "unit",
+      "purchases": [
+        {
+          "price": 2.99,
+          "currency": "$",
+          "date": "2020-05-01",
+          "place": "Lucky's"
+        }
+      ]
+    },
+    { "id": "890",
+      "name": "Onion",
+      "brand": "",
+      "quantity": "1",
+      "unit": "lb",
+      "purchases": [
+        {
+          "price": 1.49,
+          "currency": "$",
+          "date": "2020-05-01",
+          "place": "Lucky's"
+        }
+      ]
+    },
+     { "id": "11100",
+      "name": "Onion",
+      "brand": "Yellow organic",
+      "quantity": "1",
+      "unit": "lb",
+      "purchases": [
+        {
+          "price": 2.49,
+          "currency": "$",
+          "date": "2020-04-01",
+          "place": "Lucky's"
+        }
+      ]
+    },
   ];
     
     function priceText(escapedCurrency, escapedPrice) {
@@ -184,6 +331,11 @@
   function buildItemListUI() {
     var template = Handlebars.compile($("#main-page-template").html());
     $("#list").html(template({ "placeholder": "Search product", "products": itemsList}));
+
+    $('.main.menu').visibility({
+        type: 'fixed'
+    });
+    $('.ui.sticky').sticky();
   }
 
   // Note: This is a copy of the existing item.
@@ -263,6 +415,23 @@
       $("#modal").modal('show');
     });
 
+    $("body").on("click", "#addItem", function(e) {
+      e.preventDefault();
+      itemBeingEdited = {"currency": "$", "purchases": []};
+      itemBeingEditedIndex = null;
+      buildItemBeingEditedUI();
+      $("#modal").modal('show');
+    });
+
+    $("body").on("click", ".deleteItem", function(e) {
+      // We need this to prevent the modal edit UI to pop-up.
+      e.stopPropagation();
+      var deleteIndex = e.target.parentElement.parentElement.getAttribute("item-index");
+      itemsList.splice(deleteIndex, 1);
+      buildItemListUI();
+    });
+
+    // Install the event listeners on the modal UI.
     $("body").on("click", "#addPurchase", function(e) {
       e.preventDefault();
       saveEditsFromDOM();
@@ -281,13 +450,19 @@
     $("body").on("click", "#save", function (e) {
       e.preventDefault();
       saveEditsFromDOM();
-      itemsList[itemBeingEditedIndex] = itemBeingEdited;
+      if (itemBeingEditedIndex === null) {
+        // This is the case for a new item so just append it.
+        itemsList.push(itemBeingEdited);
+      } else {
+        itemsList[itemBeingEditedIndex] = itemBeingEdited;
+      }
       itemBeingEdited = null;
       itemBeingEditedIndex = null;
 
       // TODO: We should check that there was a diff instead of unconditionally blowing up the DOM.
       buildItemListUI();
     });
+
   });
 </script>
 <style>
@@ -297,6 +472,10 @@
 
 .empty {
   width: 3em;
+}
+
+#searchBar {
+  flex: auto;
 }
 </style>
 <body>
