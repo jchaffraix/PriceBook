@@ -37,3 +37,7 @@ func TestUpdateInvalidElementGoogle(t *testing.T) {
 func TestDoNotTouchWrongUserGoogle(t *testing.T) {
   testDoNotTouchWrongUser(t, testGoogleDataStore)
 }
+
+func TestGetNothingGoogle(t *testing.T) {
+  testGetNothing(t, testGoogleDataStore)
+}

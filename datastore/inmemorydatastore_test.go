@@ -37,3 +37,7 @@ func TestUpdateInvalidKeyInMemory(t *testing.T) {
 func TestDoNotTouchWrongUserInMemory(t *testing.T) {
   testDoNotTouchWrongUser(t, testInMemoryDataStore)
 }
+
+func TestGetNothingInMemory(t *testing.T) {
+  testGetNothing(t, testInMemoryDataStore)
+}

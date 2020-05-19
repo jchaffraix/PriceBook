@@ -223,3 +223,15 @@ func testDoNotTouchWrongUser(t *testing.T, factory DataStoreFactory) {
     t.Fatalf("Should not have deleted another user's key")
   }
 }
+
+func testGetNothing(t *testing.T, factory DataStoreFactory) {
+  ds := factory()
+  items := ds.Get(USER_ID)
+  if items == nil {
+    t.Fatalf("Should have returned an empty array, not null")
+  }
+
+  if len(items) != 0 {
+    t.Fatalf("Data remaining from previous calls!")
+  }
+}

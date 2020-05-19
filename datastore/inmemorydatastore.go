@@ -79,7 +79,7 @@ func (ds *InMemoryDataStore) Update(userID string, item Item) error {
 }
 
 func (ds *InMemoryDataStore) Get(userID string) []Item {
-  var res []Item
+  res := make([]Item, 0)
   for key, it := range (ds.m) {
     keyUserID, keyID := splitKey(key)
     if keyUserID == userID {

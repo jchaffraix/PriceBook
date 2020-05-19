@@ -104,7 +104,7 @@ func (ds *GoogleDataStore) Update(userID string, it Item) error {
 func (ds *GoogleDataStore) Get(userID string) []Item {
   ancestorKey := datastore.NameKey(USER_TABLE, userID, nil)
   query := datastore.NewQuery(ITEM_TABLE).Ancestor(ancestorKey)
-  var res []Item
+  res := make([]Item, 0)
   it := ds.client.Run(ds.ctx, query)
   for {
     var item Item
