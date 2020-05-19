@@ -22,7 +22,7 @@ func (defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  fmt.Fprintf(w, "Hello World!")
+  http.ServeFile(w, r, "index.html")
 }
 
 type addHandler struct {
