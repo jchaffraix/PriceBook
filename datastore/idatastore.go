@@ -1,13 +1,15 @@
 package datastore
 
-import "time"
 
 // PurchaseInfo consistute one point in
 // a time series of purchases.
 type PurchaseInfo struct {
-  Time time.Time
+  // TODO: We should probably use time.Time.
+  // Unfortunately this is not parsed correctly from
+  // our front-end ISO date.
+  Time string
   Store string
-  Price float32
+  Price float32 `json:",string"`
   Currency string
 }
 
@@ -15,10 +17,10 @@ type Item struct {
   // This is the hexadecimal representation of the Key.ID.
   // It is not stored but is sometimes returned to our API.
   // It is mandatory for updating and deleting.
-  ID string `json:"id" datastore:"-"`
+  ID string `json:"id, string" datastore:"-"`
   Name string `datastore:",noindex"`
   Brand string `datastore:",noindex"`
-  Quantity float32 `datastore:",noindex"`
+  Quantity int32 `json:",string" datastore:",noindex"`
   Unit string `datastore:",noindex"`
 
   Purchases []PurchaseInfo

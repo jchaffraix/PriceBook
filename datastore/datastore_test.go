@@ -1,23 +1,24 @@
 package datastore
 
 import (
-  "time"
   "testing"
 )
 
 const USER_ID string = "user_1"
 
-func createPurchaseInfo(t time.Time, store string, price float32, currency string) []PurchaseInfo {
+func createPurchaseInfo(t string, store string, price float32, currency string) []PurchaseInfo {
   return []PurchaseInfo{
     PurchaseInfo{t, store, price, currency},
   }
 }
 
 func purchasesAreEqual(p1, p2 PurchaseInfo) bool {
+  // TODO: This is useful for time.Time comparison.
+  // But we don't do it anymore. Old explaination below:
   // We have to get the actual timestamp from the purchase.
   // This is because time.Time contains a monotonic TS by
   // default that confuses a strict equality.
-  if p1.Time.Unix() != p2.Time.Unix() {
+  if p1.Time != p2.Time {
     return false;
   }
   if p1.Store != p2.Store {
@@ -79,12 +80,12 @@ func testAdd(t *testing.T, factory DataStoreFactory) {
     it Item
     expectError bool
   }{
-    {"Valid item without brand", Item{/*ID=*/"", "Yogurt", "Foo", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")}, /*expectError*/false},
-    {"Valid item with brand", Item{/*ID=*/"", "Carrot", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")}, /*expectError*/false},
-    {"Valid item with brand and decimal", Item{/*ID=*/"", "Carrot", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 2.99, "EUR")}, /*expectError*/false},
-    {"Item without Name", Item{/*ID=*/"", /*Name=*/"", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")}, /*expectError*/true},
+    {"Valid item without brand", Item{/*ID=*/"", "Yogurt", "Foo", 1, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")}, /*expectError*/false},
+    {"Valid item with brand", Item{/*ID=*/"", "Carrot", "", 1, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")}, /*expectError*/false},
+    {"Valid item with brand and decimal", Item{/*ID=*/"", "Carrot", "", 1, "lb", createPurchaseInfo("2020-01-01", "Location", 2.99, "EUR")}, /*expectError*/false},
+    {"Item without Name", Item{/*ID=*/"", /*Name=*/"", "", 1, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")}, /*expectError*/true},
     {"Item without PurchaseInfo", Item{/*ID=*/"", "Carrot", "", 1, "lb", []PurchaseInfo{}}, /*expectError*/true},
-    {"Item with a key", Item{/*ID=*/"1234", "Carrot", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")}, /*expectError*/true},
+    {"Item with a key", Item{/*ID=*/"1234", "Carrot", "", 1, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")}, /*expectError*/true},
   }
 
   for _, tc := range tt {
@@ -121,7 +122,7 @@ func testAdd(t *testing.T, factory DataStoreFactory) {
 
 func testRemoveValidElement(t *testing.T, factory DataStoreFactory) {
   ds := factory()
-  key, e := ds.Add(USER_ID, Item{"", "Carrot", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")});
+  key, e := ds.Add(USER_ID, Item{"", "Carrot", "", 1, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
@@ -145,13 +146,13 @@ func testRemoveInvalidKey(t *testing.T, factory DataStoreFactory) {
 
 func testUpdateValidElement(t *testing.T, factory DataStoreFactory) {
   ds := factory()
-  key, e := ds.Add(USER_ID, Item{"", "Carrot", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")});
+  key, e := ds.Add(USER_ID, Item{"", "Carrot", "", 1, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
   defer dataStoreCleanUp(t, ds, key)
 
-  newItem := Item{key, "Carrot 2", "", 2, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")};
+  newItem := Item{key, "Carrot 2", "", 2, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")};
   e = ds.Update(USER_ID, newItem)
   if e != nil {
     t.Fatalf("Unexpected error when updating valid item (error=%v)", e)
@@ -170,7 +171,7 @@ func testUpdateValidElement(t *testing.T, factory DataStoreFactory) {
 
 func testUpdateInvalidKey(t *testing.T, factory DataStoreFactory) {
   ds := factory()
-  e := ds.Update(USER_ID, Item{"inexistent", "Carrot", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")});
+  e := ds.Update(USER_ID, Item{"inexistent", "Carrot", "", 1, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")});
   if e == nil {
     t.Fatalf("Error was not raised when calling Update on inexistent key")
   }
@@ -178,7 +179,7 @@ func testUpdateInvalidKey(t *testing.T, factory DataStoreFactory) {
 
 func testUpdateInvalidElement(t *testing.T, factory DataStoreFactory) {
   ds := factory()
-  originalItem := Item{"", "Carrot", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")}
+  originalItem := Item{"", "Carrot", "", 1, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")}
   key, e := ds.Add(USER_ID, originalItem);
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
@@ -186,7 +187,7 @@ func testUpdateInvalidElement(t *testing.T, factory DataStoreFactory) {
   defer dataStoreCleanUp(t, ds, key)
 
   // Missing name.
-  newItem := Item{key, "", "", 2,"lb", createPurchaseInfo(time.Now(), "Location", 42, "$")};
+  newItem := Item{key, "", "", 2,"lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")};
   e = ds.Update(USER_ID, newItem)
   if e == nil {
     t.Fatalf("Expected error when updating with an invalid item but didn't get it!")
@@ -205,13 +206,13 @@ func testUpdateInvalidElement(t *testing.T, factory DataStoreFactory) {
 
 func testDoNotTouchWrongUser(t *testing.T, factory DataStoreFactory) {
   ds := factory()
-  key, e := ds.Add(USER_ID, Item{"", "Carrot", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")});
+  key, e := ds.Add(USER_ID, Item{"", "Carrot", "", 1, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")});
   if e != nil {
     t.Fatalf("Unexpected error when inserting valid item (error=%v)", e)
   }
   defer dataStoreCleanUp(t, ds, key)
 
-  newItem := Item{key, "Carrot 2", "", 2, "lb", createPurchaseInfo(time.Now(), "Location", 42, "$")};
+  newItem := Item{key, "Carrot 2", "", 2, "lb", createPurchaseInfo("2020-01-01", "Location", 42, "$")};
   e = ds.Update("not_user_1", newItem)
   if e == nil {
     t.Fatalf("Should not have updated another user's key")
