@@ -23,7 +23,7 @@
     <tr>
       <th>Product</th>
       <th>Price</th>
-      <th>Place</th>
+      <th>Store</th>
       <th>Date</th>
       <th class="empty"><i class="icon plus circle" id="addItem"></i></th>
     </tr>
@@ -74,7 +74,7 @@
     <tr>
       <th>Price</th>
       <th>Date</th>
-      <th>Place</th>
+      <th>Store</th>
       <th class="empty"><i class="icon plus circle" id="addPurchase"></i></th>
     </tr>
   </thead>
@@ -94,7 +94,7 @@
       </td>
       <td>
         <div class="ui input">
-          <input type="text" placeholder="{{place}}" id="place-{{@index}}">
+          <input type="text" placeholder="{{store}}" id="store-{{@index}}">
         </div>
       </td>
       <td>
@@ -130,13 +130,13 @@
           "price": 1.25,
           "currency": "$",
           "date": "2020-03-01",
-          "place": "Sprouts"
+          "store": "Sprouts"
         },
         {
           "price": 1.00,
           "currency": "$",
           "date": "2020-01-01",
-          "place": "Lucky's"
+          "store": "Lucky's"
         }
       ]
     },
@@ -150,7 +150,7 @@
           "price": 3.44,
           "currency": "$",
           "date": "2020-04-01",
-          "place": "Whole Foods"
+          "store": "Whole Foods"
         }
       ]
     },
@@ -164,13 +164,13 @@
           "price": 2.25,
           "currency": "$",
           "date": "2020-03-01",
-          "place": "Sprouts"
+          "store": "Sprouts"
         },
         {
           "price": 2.00,
           "currency": "$",
           "date": "2020-01-01",
-          "place": "Lucky's"
+          "store": "Lucky's"
         }
       ]
     },
@@ -184,7 +184,7 @@
           "price": 4.25,
           "currency": "$",
           "date": "2020-03-01",
-          "place": "Sprouts"
+          "store": "Sprouts"
         },
       ]
     },
@@ -198,13 +198,13 @@
           "price": 1.25,
           "currency": "$",
           "date": "2020-03-01",
-          "place": "Sprouts"
+          "store": "Sprouts"
         },
         {
           "price": 1.00,
           "currency": "$",
           "date": "2020-01-01",
-          "place": "Lucky's"
+          "store": "Lucky's"
         }
       ]
     },
@@ -218,7 +218,7 @@
           "price": 1.29,
           "currency": "$",
           "date": "2020-01-01",
-          "place": "Lucky's"
+          "store": "Lucky's"
         }
       ]
     },
@@ -232,7 +232,7 @@
           "price": 1,
           "currency": "$",
           "date": "2020-05-01",
-          "place": "Lucky's"
+          "store": "Lucky's"
         }
       ]
     },
@@ -246,7 +246,7 @@
           "price": 2.5,
           "currency": "$",
           "date": "2020-05-01",
-          "place": "Lucky's"
+          "store": "Lucky's"
         }
       ]
     },
@@ -260,7 +260,7 @@
           "price": 2.99,
           "currency": "$",
           "date": "2020-05-01",
-          "place": "Lucky's"
+          "store": "Lucky's"
         }
       ]
     },
@@ -274,7 +274,7 @@
           "price": 1.49,
           "currency": "$",
           "date": "2020-05-01",
-          "place": "Lucky's"
+          "store": "Lucky's"
         }
       ]
     },
@@ -288,7 +288,7 @@
           "price": 2.49,
           "currency": "$",
           "date": "2020-04-01",
-          "place": "Lucky's"
+          "store": "Lucky's"
         }
       ]
     },
@@ -310,9 +310,9 @@
 
     var escapedCurrency = Handlebars.escapeExpression(bestPurchase.currency);
     var escapedPrice = Handlebars.escapeExpression(bestPurchase.price);
-    var escapedPlace = Handlebars.escapeExpression(bestPurchase.place);
+    var escapedStore = Handlebars.escapeExpression(bestPurchase.store);
     var escapedDate = Handlebars.escapeExpression(bestPurchase.date);
-    return new Handlebars.SafeString("<td>" + priceText(escapedCurrency, escapedPrice) + "</td><td>" + escapedPlace + "</td><td>" + escapedDate + "</td>");
+    return new Handlebars.SafeString("<td>" + priceText(escapedCurrency, escapedPrice) + "</td><td>" + escapedStore + "</td><td>" + escapedDate + "</td>");
   });
 
   Handlebars.registerHelper("generate_options", function(item) {
@@ -397,9 +397,9 @@
         itemBeingEdited.purchases[i]["date"] = updatedDate;
       }
 
-      var updatedPlace = $("#place-" + i)[0].value;
-      if (updatedPlace !== "") {
-        itemBeingEdited.purchases[i]["place"] = updatedPlace;
+      var updatedStore = $("#store-" + i)[0].value;
+      if (updatedStore !== "") {
+        itemBeingEdited.purchases[i]["store"] = updatedStore;
       }
     }
   }

@@ -8,6 +8,7 @@ type PurchaseInfo struct {
   Time time.Time
   Store string
   Price float32
+  Currency string
 }
 
 type Item struct {
@@ -15,7 +16,8 @@ type Item struct {
   // It is not stored but is sometimes returned to our API.
   // It is mandatory for updating and deleting.
   ID string `json:"id" datastore:"-"`
-  Name string
+  Name string `datastore:",noindex"`
+  Brand string `datastore:",noindex"`
   Quantity float32 `datastore:",noindex"`
   Unit string `datastore:",noindex"`
 
