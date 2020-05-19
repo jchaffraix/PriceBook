@@ -117,182 +117,11 @@
 </div>
 </script>
 <script>
+  const serverURL = "http://localhost:8080";
+
   // TODO: Dynamically load this.
   // TODO: Should the currency be common in our model? Driven by pref like unit?
-  var itemsList = [
-    { "id": "1",
-      "name": "Pasta",
-      "brand": "Barilla",
-      "quantity": "16",
-      "unit": "oz",
-      "purchases": [
-        {
-          "price": 1.25,
-          "currency": "$",
-          "date": "2020-03-01",
-          "store": "Sprouts"
-        },
-        {
-          "price": 1.00,
-          "currency": "$",
-          "date": "2020-01-01",
-          "store": "Lucky's"
-        }
-      ]
-    },
-    { "id": "5",
-      "name": "Orange",
-      "currency": "$",
-      "quantity": "1",
-      "unit": "lb",
-      "purchases": [
-        {
-          "price": 3.44,
-          "currency": "$",
-          "date": "2020-04-01",
-          "store": "Whole Foods"
-        }
-      ]
-    },
-    { "id": "9",
-      "name": "Pasta",
-      "brand": "Foobar",
-      "quantity": "16",
-      "unit": "oz",
-      "purchases": [
-        {
-          "price": 2.25,
-          "currency": "$",
-          "date": "2020-03-01",
-          "store": "Sprouts"
-        },
-        {
-          "price": 2.00,
-          "currency": "$",
-          "date": "2020-01-01",
-          "store": "Lucky's"
-        }
-      ]
-    },
-    { "id": "12",
-      "name": "Bread",
-      "brand": "David Killer",
-      "quantity": "32",
-      "unit": "oz",
-      "purchases": [
-        {
-          "price": 4.25,
-          "currency": "$",
-          "date": "2020-03-01",
-          "store": "Sprouts"
-        },
-      ]
-    },
-    { "id": "1234",
-      "name": "Pasta",
-      "brand": "Penne Barilla",
-      "quantity": "16",
-      "unit": "oz",
-      "purchases": [
-        {
-          "price": 1.25,
-          "currency": "$",
-          "date": "2020-03-01",
-          "store": "Sprouts"
-        },
-        {
-          "price": 1.00,
-          "currency": "$",
-          "date": "2020-01-01",
-          "store": "Lucky's"
-        }
-      ]
-    },
-    { "id": "1234",
-      "name": "Potato",
-      "brand": "Russet",
-      "quantity": "1",
-      "unit": "lb",
-      "purchases": [
-        {
-          "price": 1.29,
-          "currency": "$",
-          "date": "2020-01-01",
-          "store": "Lucky's"
-        }
-      ]
-    },
-    { "id": "5555",
-      "name": "Avocado",
-      "brand": "",
-      "quantity": "1",
-      "unit": "unit",
-      "purchases": [
-        {
-          "price": 1,
-          "currency": "$",
-          "date": "2020-05-01",
-          "store": "Lucky's"
-        }
-      ]
-    },
-    { "id": "55",
-      "name": "Avocado",
-      "brand": "Organic",
-      "quantity": "1",
-      "unit": "unit",
-      "purchases": [
-        {
-          "price": 2.5,
-          "currency": "$",
-          "date": "2020-05-01",
-          "store": "Lucky's"
-        }
-      ]
-    },
-    { "id": "678",
-      "name": "Salad",
-      "brand": "Red Leaf",
-      "quantity": "1",
-      "unit": "unit",
-      "purchases": [
-        {
-          "price": 2.99,
-          "currency": "$",
-          "date": "2020-05-01",
-          "store": "Lucky's"
-        }
-      ]
-    },
-    { "id": "890",
-      "name": "Onion",
-      "brand": "",
-      "quantity": "1",
-      "unit": "lb",
-      "purchases": [
-        {
-          "price": 1.49,
-          "currency": "$",
-          "date": "2020-05-01",
-          "store": "Lucky's"
-        }
-      ]
-    },
-     { "id": "11100",
-      "name": "Onion",
-      "brand": "Yellow organic",
-      "quantity": "1",
-      "unit": "lb",
-      "purchases": [
-        {
-          "price": 2.49,
-          "currency": "$",
-          "date": "2020-04-01",
-          "store": "Lucky's"
-        }
-      ]
-    },
-  ];
+  var itemsList = [];
     
     function priceText(escapedCurrency, escapedPrice) {
     // TODO: Handle other currencies (euro is after the price).
@@ -405,7 +234,7 @@
   }
 
   window.addEventListener("load", function() {
-    buildItemListUI();
+    loadFromRemote();
 
     // Install the event listeners on main UI.
     $("body").on("click", "#main tr[item-index]", function(e) {
@@ -427,7 +256,9 @@
       // We need this to prevent the modal edit UI to pop-up.
       e.stopPropagation();
       var deleteIndex = e.target.parentElement.parentElement.getAttribute("item-index");
+      var deletedItem = itemsList[deleteIndex];
       itemsList.splice(deleteIndex, 1);
+      deleteFromRemote(deletedItem);
       buildItemListUI();
     });
 
@@ -453,17 +284,65 @@
       if (itemBeingEditedIndex === null) {
         // This is the case for a new item so just append it.
         itemsList.push(itemBeingEdited);
+        itemBeingEditedIndex = itemsList.length - 1;
       } else {
         itemsList[itemBeingEditedIndex] = itemBeingEdited;
       }
+      saveRemotely(itemBeingEdited, itemBeingEditedIndex);
       itemBeingEdited = null;
       itemBeingEditedIndex = null;
 
       // TODO: We should check that there was a diff instead of unconditionally blowing up the DOM.
       buildItemListUI();
     });
-
   });
+
+  // Server functions.
+  function loadFromRemote() {
+    $.ajax({
+      "url": serverURL + "/get",
+      "type": "GET",
+      "dataType": "json",
+      "success": function (msg) {
+        itemsList = msg;
+        buildItemListUI();
+      }
+      // TODO: Handle error + UI updates.
+    });
+  }
+
+  function deleteFromRemote(item) {
+    $.ajax({
+      "url": serverURL + "/delete",
+      "contentType": "text/plain; charset=UTF-8",
+      "data": item['id'],
+      "type": "POST",
+      "success": function (msg) {
+        // TODO: Update UI.
+      }
+      // TODO: Handle error + UI updates.
+    });
+  }
+  function saveRemotely(item, index) {
+    var path = "/update";
+    if (item['id'] === undefined) {
+      // This is a new item, save it.
+      path = "/add";
+    }
+
+    $.ajax({
+      "url": serverURL + path,
+      "contentType": "application/json; charset=UTF-8",
+      "data": JSON.stringify(item),
+      "type": "POST",
+      "success": function (msg) {
+        if (path === "/add") {
+          item['id'] = msg;
+        }
+      }
+      // TODO: Handle error + UI updates.
+    });
+  }
 </script>
 <style>
 .ui.label:not(.currency) {

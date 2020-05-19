@@ -7,10 +7,10 @@ type PurchaseInfo struct {
   // TODO: We should probably use time.Time.
   // Unfortunately this is not parsed correctly from
   // our front-end ISO date.
-  Time string
-  Store string
-  Price float32 `json:",string"`
-  Currency string
+  Date string `json:"date"`
+  Store string `json:"store"`
+  Price float32 `json:"price,string"`
+  Currency string `json:"currency"`
 }
 
 type Item struct {
@@ -18,12 +18,12 @@ type Item struct {
   // It is not stored but is sometimes returned to our API.
   // It is mandatory for updating and deleting.
   ID string `json:"id, string" datastore:"-"`
-  Name string `datastore:",noindex"`
-  Brand string `datastore:",noindex"`
-  Quantity int32 `json:",string" datastore:",noindex"`
-  Unit string `datastore:",noindex"`
+  Name string `json:"name" datastore:",noindex"`
+  Brand string `json:"brand" datastore:",noindex"`
+  Quantity int32 `json:"quantity,string" datastore:",noindex"`
+  Unit string `json:"unit" datastore:",noindex"`
 
-  Purchases []PurchaseInfo
+  Purchases []PurchaseInfo `json:"purchases"`
 }
 
 type IDataStore interface {

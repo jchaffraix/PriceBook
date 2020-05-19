@@ -18,7 +18,7 @@ func purchasesAreEqual(p1, p2 PurchaseInfo) bool {
   // We have to get the actual timestamp from the purchase.
   // This is because time.Time contains a monotonic TS by
   // default that confuses a strict equality.
-  if p1.Time != p2.Time {
+  if p1.Date != p2.Date {
     return false;
   }
   if p1.Store != p2.Store {
