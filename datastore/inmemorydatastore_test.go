@@ -5,45 +5,14 @@ import (
   "testing"
 )
 
-func TestAddInMemory(t *testing.T) {
-  tt := []struct {
-    name string
-    it Item
-    expectError bool
-  }{
-    {"Valid item", Item{/*ID=*/"", "Carrot", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42)}, /*expectError*/false},
-    {"Item without Name", Item{/*ID=*/"", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42)}, /*expectError*/true},
-    {"Item without PurchaseInfo", Item{/*ID=*/"", "Carrot", 1, "lb", []PurchaseInfo{}}, /*expectError*/true},
-    {"Item with a key", Item{/*ID=*/"1234", "Carrot", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42)}, /*expectError*/true},
-  }
 
-  for _, tc := range tt {
-    t.Run(tc.name, func(t *testing.T) {
-      ds := NewInMemoryDataStore()
-      key, e := ds.Add(USER_ID, tc.it)
-      if tc.expectError {
-        if e == nil {
-          t.Fatalf("Expected error but didn't get one")
-        }
-      } else {
-        if e != nil {
-          t.Fatalf("Unexpected error %v", e)
-        }
-        if key == "" {
-          t.Fatalf("Expect a valid key when no error was thrown!")
-        }
-        items := ds.Get(USER_ID)
-        if len(items) != 1 {
-          t.Fatalf("Wrong number of items after insertion: %+v", items)
-        }
-        expectedItem := tc.it
-        expectedItem.ID = key
-        if !itemsAreEqual(items[0], expectedItem) {
-          t.Fatalf("Wrong item stored, inserted=%+v, got=%+v", expectedItem, items[0])
-        }
-      }
-    })
-  }
+// TODO: Not sure why I need this explicit wrapper.
+func testInMemoryDataStore() IDataStore {
+  return NewInMemoryDataStore();
+}
+
+func TestAddInMemory(t *testing.T) {
+  testAdd(t, testInMemoryDataStore)
 }
 
 func TestRemoveValidElementInMemory(t *testing.T) {

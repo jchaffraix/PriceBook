@@ -2,6 +2,7 @@ package datastore
 
 import (
   "time"
+  "testing"
 )
 
 const USER_ID string = "user_1"
@@ -58,3 +59,57 @@ func itemsAreEqual(i1, i2 Item) bool {
   return true;
 }
 
+// Actual tests.
+// Hoisted here to be shared between the 2 implementations.
+type DataStoreFactory func() IDataStore
+
+func dataStoreCleanUp(t *testing.T, ds IDataStore, key string) {
+    err := ds.Delete(USER_ID, key)
+    if err != nil {
+      t.Fatalf("Delete failed, expect follow-up tests to fail too as the shared fixture is dirty")
+    }
+}
+
+func testAdd(t *testing.T, factory DataStoreFactory) {
+  tt := []struct {
+    name string
+    it Item
+    expectError bool
+  }{
+    {"Valid item", Item{/*ID=*/"", "Carrot", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42)}, /*expectError*/false},
+    {"Item without Name", Item{/*ID=*/"", "", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42)}, /*expectError*/true},
+    {"Item without PurchaseInfo", Item{/*ID=*/"", "Carrot", 1, "lb", []PurchaseInfo{}}, /*expectError*/true},
+    {"Item with a key", Item{/*ID=*/"1234", "Carrot", 1, "lb", createPurchaseInfo(time.Now(), "Location", 42)}, /*expectError*/true},
+  }
+
+  for _, tc := range tt {
+    t.Run(tc.name, func(t *testing.T) {
+      ds := factory()
+      key, err := ds.Add(USER_ID, tc.it)
+      if tc.expectError {
+        if err == nil {
+          t.Fatalf("Expected error but didn't get one")
+        }
+      } else {
+        defer dataStoreCleanUp(t, ds, key)
+        if err != nil {
+          t.Fatalf("Unexpected error %v", err)
+        }
+        if key == "" {
+          t.Fatalf("Expect a valid key when no error was thrown!")
+        }
+        items := ds.Get(USER_ID)
+        if len(items) != 1 {
+          t.Fatalf("Wrong number of items after insertion: %+v", items)
+        }
+
+        // Add the key to the item in Get.
+        expectedItem := tc.it
+        expectedItem.ID = key
+        if !itemsAreEqual(items[0], expectedItem) {
+          t.Fatalf("Wrong item stored, expected=%+v, got=%+v", expectedItem, items[0])
+        }
+      }
+    })
+  }
+}
