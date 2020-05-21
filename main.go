@@ -41,6 +41,10 @@ func (h addHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     return
   }
   userID := h.id.GetUserID(r)
+  if userID == "" {
+    panic("Couldn't get userID")
+  }
+
   key, err := h.ds.Add(userID, it)
   if err != nil {
     http.Error(w, err.Error(), http.StatusBadRequest)
@@ -72,6 +76,10 @@ func (h deleteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   }
 
   userID := h.id.GetUserID(r)
+  if userID == "" {
+    panic("Couldn't get userID")
+  }
+
   err = h.ds.Delete(userID, string(key[:n]))
   if err != nil {
     http.Error(w, err.Error(), http.StatusBadRequest)
@@ -95,6 +103,10 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     return
   }
   userID := h.id.GetUserID(r)
+  if userID == "" {
+    panic("Couldn't get userID")
+  }
+
   log.Printf("Preparing to update object %+v for userID %v", item, userID)
   err = h.ds.Update(userID, item)
   if err != nil {
@@ -111,6 +123,10 @@ type getHandler struct {
 
 func (h getHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   userID := h.id.GetUserID(r)
+  if userID == "" {
+    panic("Couldn't get userID")
+  }
+
   items := h.ds.Get(userID)
   res, err := json.Marshal(items)
   if err != nil {
