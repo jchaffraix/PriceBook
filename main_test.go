@@ -45,7 +45,8 @@ func TestAddAllowValidObject(t *testing.T) {
     name string
     body string
   }{
-    {"Simple object", "{\"name\":\"Oranges\",\"brand\":\"Navel\",\"quantity\":\"1\",\"unit\":\"lb\",\"purchases\":[{\"date\":\"2020-05-1\",\"store\":\"Foobar\",\"price\":\"1.29\",\"currency\":\"$\"}]}"},
+    {"Simple object", "{\"name\":\"Oranges\",\"brand\":\"Navel\",\"quantity\":1,\"unit\":\"lb\",\"purchases\":[{\"date\":\"2020-05-1\",\"store\":\"Foobar\",\"price\":\"1.29\",\"currency\":\"$\"}]}"},
+    {"Object with less than 1 price", "{\"name\":\"Oranges\",\"brand\":\"Navel\",\"quantity\":1,\"unit\":\"lb\",\"purchases\":[{\"date\":\"2020-05-1\",\"store\":\"Foobar\",\"price\":\"0.29\",\"currency\":\"$\"}]}"},
   }
   for _, tc := range tt {
     t.Run(tc.name, func(t *testing.T) {

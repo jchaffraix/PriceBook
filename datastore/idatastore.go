@@ -17,10 +17,10 @@ type Item struct {
   // This is the hexadecimal representation of the Key.ID.
   // It is not stored but is sometimes returned to our API.
   // It is mandatory for updating and deleting.
-  ID string `json:"id, string" datastore:"-"`
+  ID string `json:"id" datastore:"-"`
   Name string `json:"name" datastore:",noindex"`
   Brand string `json:"brand" datastore:",noindex"`
-  Quantity int32 `json:"quantity,string" datastore:",noindex"`
+  Quantity int32 `json:"quantity" datastore:",noindex"`
   Unit string `json:"unit" datastore:",noindex"`
 
   Purchases []PurchaseInfo `json:"purchases"`

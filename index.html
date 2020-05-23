@@ -203,8 +203,8 @@
 
     var updatedQuantity = $('#quantity')[0].value
     if (updatedQuantity !== "") {
-      // TODO: Validate that it's an int!
-      itemBeingEdited['quantity']= Handlebars.escapeExpression(updatedQuantity);
+      var parsedQuantity = parseInt(updatedQuantity, 10);
+      itemBeingEdited['quantity']= parsedQuantity;
     }
     var selectedOptions = document.getElementById("unit").selectedOptions;
     if (selectedOptions.length != 1) {
@@ -216,7 +216,8 @@
     for (var i = 0; i < itemBeingEdited.purchases.length; ++i) {
       var updatedAmount = $("#amount-" + i)[0].value;
       if (updatedAmount !== "") {
-        itemBeingEdited.purchases[i]["price"] = updatedAmount;
+        var parsedAmount = Number.parseFloat(updatedAmount).toFixed(2);
+        itemBeingEdited.purchases[i]["price"] = parsedAmount;
       }
 
       var updatedDate = $("#date-" + i)[0].value;
