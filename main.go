@@ -37,7 +37,8 @@ func (h addHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   var it datastore.Item
   err := json.NewDecoder(r.Body).Decode(&it)
   if err != nil {
-    http.Error(w, err.Error(), http.StatusBadRequest)
+    log.Printf("Failed parsing JSON: %+v", err.Error())
+    http.Error(w, "Bad JSON", http.StatusBadRequest)
     return
   }
   userID := h.id.GetUserID(r)
