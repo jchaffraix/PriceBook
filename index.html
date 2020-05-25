@@ -117,9 +117,17 @@
   // TODO: Should the currency be common in our model? Driven by pref like unit?
   var itemsList = [];
     
-    function priceText(escapedCurrency, escapedPrice) {
+  function priceText(escapedCurrency, price, quantity, escapedUnit) {
+    if (typeof price !== "number" || typeof quantity !== "number") {
+      return "💥 Something is really wrong. Please file a bug."
+    }
+
     // TODO: Handle other currencies (euro is after the price).
-    return escapedCurrency + escapedPrice;
+    var text = escapedCurrency + price;
+    if (!Number.isNaN(price) && !Number.isNaN(quantity) && quantity !== 0) {
+      text += " (" + escapedCurrency + price/quantity + " / " + escapedUnit + ")";
+    }
+    return text;
   }
 
   Handlebars.registerHelper("generate_best_price", function(item) {
@@ -131,11 +139,14 @@
       }
     });
 
+    var quantity = parseInt(item.quantity);
+    var price = parseFloat(bestPurchase.price);
+    var escapedUnit = Handlebars.escapeExpression(item.unit);
+
     var escapedCurrency = Handlebars.escapeExpression(bestPurchase.currency);
-    var escapedPrice = Handlebars.escapeExpression(bestPurchase.price);
     var escapedStore = Handlebars.escapeExpression(bestPurchase.store);
     var escapedDate = Handlebars.escapeExpression(bestPurchase.date);
-    return new Handlebars.SafeString("<td>" + priceText(escapedCurrency, escapedPrice) + "</td><td>" + escapedStore + "</td><td>" + escapedDate + "</td>");
+    return new Handlebars.SafeString("<td>" + priceText(escapedCurrency, price, quantity, escapedUnit) + "</td><td>" + escapedStore + "</td><td>" + escapedDate + "</td>");
   });
 
   Handlebars.registerHelper("generate_options", function(item) {
