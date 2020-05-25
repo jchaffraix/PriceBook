@@ -7,13 +7,6 @@
 <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 <script id="main-page-template" type="text/x-handlebars-template">
-<div class="ui borderless main menu" id="searchMenu">
-  <div class="ui fluid icon input" id="searchBar">
-    <input type="text" placeholder="Search products" id="search">
-    <i class="search icon"></i>
-  </div>
-</div>
-
 <table class="ui selectable unstackable fixed table" id="main">
   <thead>
     <tr>
@@ -164,7 +157,7 @@
 
   function buildItemListUI() {
     var template = Handlebars.compile($("#main-page-template").html());
-    $("#list").html(template({ "placeholder": "Search product", "products": itemsList}));
+    $("#list").html(template({ "placeholder": "Search product", "products": itemsFilteredBySearch()}));
 
     $('.main.menu').visibility({
         type: 'fixed'
@@ -296,6 +289,9 @@
       // TODO: We should check that there was a diff instead of unconditionally blowing up the DOM.
       buildItemListUI();
     });
+    $("body").on("input", ".search", function (e) {
+      buildItemListUI();
+    });
   });
 
   // Server functions.
@@ -344,6 +340,23 @@
       // TODO: Handle error + UI updates.
     });
   }
+
+  // Returns the products that match the search
+  // query. If it empty, we return everything.
+  function itemsFilteredBySearch() {
+    const filter = new RegExp($(".search")[0].value, "i");
+    var filteredItems = Array.from(itemsList);
+    if (filter !== "") {
+      filteredItems = filteredItems.filter(product => product.name.search(filter) != -1);
+    }
+    return filteredItems.sort(function(itemA, itemB) {
+      if (itemA.name < itemB.name)
+        return -1;
+      if (itemA.name > itemB.name)
+        return 1;
+      return 0;
+    });
+  }
 </script>
 <style>
 .ui.label:not(.currency) {
@@ -359,6 +372,12 @@
 }
 </style>
 <body>
+<div class="ui borderless main menu" id="searchMenu">
+  <div class="ui fluid icon input" id="searchBar">
+    <input type="text" placeholder="Search products" class="search">
+    <i class="search icon"></i>
+  </div>
+</div>
 <div id="list"></div>
 <div id="modal" class="ui modal scrolling"></div>
 </body>
