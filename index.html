@@ -2,13 +2,9 @@
 <html>
 <head>
 <title>Price book app</title>
-<script
-  src="https://code.jquery.com/jquery-3.1.1.min.js"
-    integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-      crossorigin="anonymous"></script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
-<script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.css">
+<script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 <script id="main-page-template" type="text/x-handlebars-template">
 <div class="ui borderless main menu" id="searchMenu">
@@ -174,6 +170,7 @@
   function buildItemBeingEditedUI() {
     var modalTemplate = Handlebars.compile($("#item-modal-template").html());
     $("#modal").html(modalTemplate(itemBeingEdited));
+    $("#modal").modal('show');
   }
 
   function ISOTodayDate() {
@@ -240,15 +237,12 @@
       itemBeingEditedIndex = e.target.parentElement.getAttribute("item-index");
       itemBeingEdited = jQuery.extend(true, {}, itemsList[itemBeingEditedIndex]);
       buildItemBeingEditedUI();
-      $("#modal").modal('show');
     });
 
     $("body").on("click", "#addItem", function(e) {
-      e.preventDefault();
       itemBeingEdited = {"currency": "$", "purchases": []};
       itemBeingEditedIndex = null;
       buildItemBeingEditedUI();
-      $("#modal").modal('show');
     });
 
     $("body").on("click", ".deleteItem", function(e) {
@@ -263,14 +257,12 @@
 
     // Install the event listeners on the modal UI.
     $("body").on("click", "#addPurchase", function(e) {
-      e.preventDefault();
       saveEditsFromDOM();
       itemBeingEdited.purchases.push({"currency": "$", "date": ISOTodayDate()});
       buildItemBeingEditedUI();
     });
 
     $("body").on("click", ".deletePurchase", function(e) {
-      e.preventDefault();
       saveEditsFromDOM();
       var index = e.currentTarget.parentElement.parentElement.getAttribute("item-index");
       itemBeingEdited.purchases.splice(index, 1);
@@ -278,7 +270,6 @@
     });
 
     $("body").on("click", "#save", function (e) {
-      e.preventDefault();
       saveEditsFromDOM();
       if (itemBeingEditedIndex === null) {
         // This is the case for a new item so just append it.
@@ -358,5 +349,5 @@
 </style>
 <body>
 <div id="list"></div>
-<div id="modal" class="ui modal"></div>
+<div id="modal" class="ui modal scrolling"></div>
 </body>
