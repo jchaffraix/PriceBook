@@ -117,9 +117,9 @@
     }
 
     // TODO: Handle other currencies (euro is after the price).
-    var text = escapedCurrency + price;
+    var text = escapedCurrency + Number(price).toFixed(2);
     if (!Number.isNaN(price) && !Number.isNaN(quantity) && quantity !== 0) {
-      text += " (" + escapedCurrency + price/quantity + " / " + escapedUnit + ")";
+      text += " (" + escapedCurrency + Number(price/quantity).toFixed(2) + " / " + escapedUnit + ")";
     }
     return text;
   }
