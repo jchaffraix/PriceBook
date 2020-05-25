@@ -106,7 +106,6 @@
 </div>
 </script>
 <script>
-  // TODO: Dynamically load this.
   // TODO: Should the currency be common in our model? Driven by pref like unit?
   var itemsList = [];
   var mapItemToPosition = new Map();
@@ -332,8 +331,10 @@
           mapItemToPosition.set(itemsList[i], i);
         }
         buildItemListUI();
+      },
+      "error": function (xhr, code, msg) {
+        errorToast("get", code, msg);
       }
-      // TODO: Handle error + UI updates.
     });
   }
 
@@ -345,10 +346,13 @@
       "type": "POST",
       "success": function (msg) {
         // TODO: Update UI.
+      },
+      "error": function (xhr, code, msg) {
+        errorToast("delete", code, msg);
       }
-      // TODO: Handle error + UI updates.
     });
   }
+
   function saveRemotely(item, index) {
     var path = "/update";
     if (item['id'] === undefined) {
@@ -366,9 +370,26 @@
           item['id'] = msg;
           mapItemToPosition.set(item, index);
         }
+      },
+      "error": function (xhr, code, msg) {
+        errorToast(path === "/add" ? "add" : "update", code, msg);
       }
-      // TODO: Handle error + UI updates.
     });
+  }
+
+  function errorToast(operation, code, msg) {
+    var fullMessage = operation + " failed with error code: " + code;
+    if (msg !== undefined && msg != "") {
+      fullMessage += " (msg = " + msg + ")";
+    }
+
+    $('body')
+      .toast({
+        displayTime: 15000,
+        position: 'top left',
+        class: 'error',
+        message: fullMessage,
+      });
   }
 
   // Returns the products that match the search
