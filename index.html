@@ -184,18 +184,18 @@
   }
 
   function saveEditsFromDOM() {
-    // TODO: Validate the names, for now we prevent XSS through Handlebars.
     var updatedName = $('#name')[0].value
     if (updatedName !== "") {
-      itemBeingEdited['name']= Handlebars.escapeExpression(updatedName);
+      itemBeingEdited['name']= updatedName
     }
+
     var updatedBrand = $('#brand')[0].value
     if (updatedBrand !== "") {
       // TODO: Find a good solution to clearing brand.
       if (updatedBrand === " ") {
         updatedBrand = "";
       }
-      itemBeingEdited['brand']= Handlebars.escapeExpression(updatedBrand);
+      itemBeingEdited['brand']= updatedBrand;
     }
 
     var updatedQuantity = $('#quantity')[0].value
@@ -208,7 +208,7 @@
       throw "bad selected state, len = " + selectedOptions.length;
     }
 
-    itemBeingEdited['unit']= Handlebars.escapeExpression(selectedOptions[0].value);
+    itemBeingEdited['unit']= selectedOptions[0].value;
 
     for (var i = 0; i < itemBeingEdited.purchases.length; ++i) {
       var updatedAmount = $("#amount-" + i)[0].value;
