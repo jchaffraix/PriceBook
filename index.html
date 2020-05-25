@@ -19,7 +19,7 @@
   </thead>
   <tbody>
 {{#each products}}
-  <tr item-index={{@index}}>
+  <tr item-index={{item_index this}}>
     <td>
       {{name}} {{#if brand}}({{brand}}){{/if}}
     </td>
@@ -109,7 +109,8 @@
   // TODO: Dynamically load this.
   // TODO: Should the currency be common in our model? Driven by pref like unit?
   var itemsList = [];
-    
+  var mapItemToPosition = new Map();
+
   function priceText(escapedCurrency, price, quantity, escapedUnit) {
     if (typeof price !== "number" || typeof quantity !== "number") {
       return "💥 Something is really wrong. Please file a bug."
@@ -123,6 +124,15 @@
     return text;
   }
 
+  Handlebars.registerHelper("item_index", function(item) {
+    if (!mapItemToPosition.has(item)) {
+      console.log("Missing index for item: " + item.id + "!!!!");
+      return new Handlebars.SafeString("-1");
+    }
+
+    return new Handlebars.SafeString(mapItemToPosition.get(item));
+  });
+  
   Handlebars.registerHelper("generate_best_price", function(item) {
     // Find the best price.
     bestPurchase = item.purchases[0]
@@ -256,6 +266,11 @@
       var deleteIndex = e.target.parentElement.parentElement.getAttribute("item-index");
       var deletedItem = itemsList[deleteIndex];
       itemsList.splice(deleteIndex, 1);
+      mapItemToPosition.delete(deletedItem);
+      // Update all items following.
+      for (var i = deleteIndex; i < itemsList.length; ++i) {
+        mapItemToPosition.set(itemsList[i], i);
+      }
       deleteFromRemote(deletedItem);
       buildItemListUI();
     });
@@ -283,6 +298,8 @@
       } else {
         itemsList[itemBeingEditedIndex] = itemBeingEdited;
       }
+      // Unconditionally update the item as it's used as the key to look up the item.
+      mapItemToPosition.set(itemBeingEdited, itemBeingEditedIndex);
       saveRemotely(itemBeingEdited, itemBeingEditedIndex);
       itemBeingEdited = null;
       itemBeingEditedIndex = null;
@@ -311,6 +328,9 @@
       "dataType": "json",
       "success": function (msg) {
         itemsList = msg;
+        for (var i = 0; i < itemsList.length; ++i) {
+          mapItemToPosition.set(itemsList[i], i);
+        }
         buildItemListUI();
       }
       // TODO: Handle error + UI updates.
@@ -344,6 +364,7 @@
       "success": function (msg) {
         if (path === "/add") {
           item['id'] = msg;
+          mapItemToPosition.set(item, index);
         }
       }
       // TODO: Handle error + UI updates.
@@ -354,7 +375,7 @@
   // query. If it empty, we return everything.
   function itemsFilteredBySearch() {
     const filter = new RegExp($(".search")[0].value, "i");
-    var filteredItems = Array.from(itemsList);
+    var filteredItems = itemsList;
     if (filter !== "") {
       filteredItems = filteredItems.filter(product => product.name.search(filter) != -1);
     }
