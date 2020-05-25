@@ -159,10 +159,7 @@
     var template = Handlebars.compile($("#main-page-template").html());
     $("#list").html(template({ "placeholder": "Search product", "products": itemsFilteredBySearch()}));
 
-    $('.main.menu').visibility({
-        type: 'fixed'
-    });
-    $('.ui.sticky').sticky();
+    $('.main.menu').visibility('refresh');
   }
 
   // Note: This is a copy of the existing item.
@@ -236,6 +233,10 @@
   window.addEventListener("load", function() {
     loadFromRemote();
 
+    $('.main.menu').visibility({
+        type: 'fixed'
+    });
+
     // Install the event listeners on main UI.
     $("body").on("click", "#main tr[item-index]", function(e) {
       itemBeingEditedIndex = e.target.parentElement.getAttribute("item-index");
@@ -289,8 +290,16 @@
       // TODO: We should check that there was a diff instead of unconditionally blowing up the DOM.
       buildItemListUI();
     });
+
     $("body").on("input", ".search", function (e) {
       buildItemListUI();
+    });
+    $("body").on("click", "#clearSelection", function (e) {
+      var currentValue = $(".search")[0].value;
+      if (currentValue !== "") {
+        $(".search")[0].value = "";
+        buildItemListUI();
+      }
     });
   });
 
@@ -372,10 +381,13 @@
 }
 </style>
 <body>
-<div class="ui borderless main menu" id="searchMenu">
-  <div class="ui fluid icon input" id="searchBar">
-    <input type="text" placeholder="Search products" class="search">
-    <i class="search icon"></i>
+
+<div class="ui main menu" id="searchMenu">
+  <div class="ui fluid left corner labeled input" id="searchBar">
+    <input type="text" placeholder="Search items by name..." class="search">
+      <div class="ui left corner label">
+          <i class="times circle icon" id="clearSelection"></i>
+      </div>
   </div>
 </div>
 <div id="list"></div>
